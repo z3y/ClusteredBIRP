@@ -1,0 +1,31 @@
+﻿// add in config before defines start:
+// #include "Packages/z3y.clusteredbirp/Shaders/Include.litshader"
+
+CODE_START
+#ifdef UNITY_PASS_FORWARDBASE
+    #define USE_MODIFYLIGHTING
+
+    #define UNITY_PI PI
+    #include <LightFunctions.hlsl>
+    #include "Packages/z3y.clusteredbirp/Shaders/CBIRP.hlsl"
+    void ModifyLightingCBIRP(inout GIData giData, Varyings IN, ShaderData sd, inout SurfaceDescription surfaceDescription)
+    {
+        uint2 cullIndex = CBIRP::CullIndex(IN.positionWS);
+
+ #ifdef LIGHTMAP_ON
+                    half4 shadowmask = _Udon_CBIRP_ShadowMask.SampleLevel(custom_bilinear_clamp_sampler, IN.lightmapUV, 0);
+                    // half4 shadowmask = 1;
+                #else
+                    half4 shadowmask = 1;
+                #endif
+
+        CBIRP::ComputeLights(cullIndex, IN.positionWS, sd.normalWS, sd.viewDirectionWS, sd.f0, sd.NoV, sd.perceptualRoughness, shadowmask, giData.Light, giData.Specular);
+
+        half lightGrayscale = sqrt(dot(giData.IndirectDiffuse + giData.Light, 1.0));
+        half specOccl = saturate(lerp(1.0, lightGrayscale, surfaceDescription.SpecularOcclusion));
+        giData.Reflections = CBIRP::SampleProbes(cullIndex, sd.reflectionDirection, IN.positionWS, sd.perceptualRoughness).xyz * sd.brdf * sd.energyCompensation * specOccl;
+    }
+
+    #define ModifyLighting ModifyLightingCBIRP
+#endif
+CODE_END
