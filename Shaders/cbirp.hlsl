@@ -145,8 +145,7 @@ namespace CBIRP
 
         CBIRP_CLUSTER_START(cullIndex)
 
-            debug++;
-
+debug+=1;
             Light light = Light::DecodeLight(index);
 
             float3 positionToLight = light.positionWS - positionWS;
@@ -164,6 +163,9 @@ namespace CBIRP
                 {
                     attenuation *= GetSpotAngleAttenuation(light.direction, L, light.spotScale, light.spotOffset);
                 }
+                // float cd = dot(-light.direction, L);
+        // float attenuations = saturate(cd - 0.2);
+            debug+=attenuation > 0;
 
                 #ifdef LIGHTMAP_ON
                 if (light.shadowmask)
@@ -206,7 +208,8 @@ namespace CBIRP
         CBIRP_CLUSTER_END
 
         #ifdef _CBIRP_DEBUG
-            diffuse = Heatmap((debug) / 16.);
+            // diffuse = Heatmap((debug) / 16.);
+            diffuse = debug / 2.;
         #endif
 
         specular *= UNITY_PI;

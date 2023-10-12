@@ -55,6 +55,9 @@ namespace z3y
         private Vector4[] _light1 = new Vector4[_lightSize];
         private Vector4[] _light2 = new Vector4[_lightSize];
         private Vector4[] _light3 = new Vector4[_lightSize];
+        // for culling only
+        private float[] _lightConeRadii = new float[_lightSize];
+
 
         private int _Udon_CBIRP_Light0;
         private int _Udon_CBIRP_Light1;
@@ -63,6 +66,7 @@ namespace z3y
 
         private int _Udon_CBIRP_PlayerCamera;
         private int _Udon_CBIRP_CullFar;
+        private int _Udon_CBIRP_ConeRadii;
 
         VRCPlayerApi _localPlayer;
 
@@ -148,6 +152,7 @@ namespace z3y
             _Udon_CBIRP_Light3 = VRCShader.PropertyToID("_Udon_CBIRP_Light3");
             _Udon_CBIRP_PlayerCamera = VRCShader.PropertyToID("_Udon_CBIRP_PlayerCamera");
             _Udon_CBIRP_CullFar = VRCShader.PropertyToID("_Udon_CBIRP_CullFar");
+            _Udon_CBIRP_ConeRadii = VRCShader.PropertyToID("_Udon_CBIRP_ConeRadii");
         }
 
         public void UpdateCullFar(float far)
@@ -170,6 +175,30 @@ namespace z3y
             VRCShader.SetGlobalVectorArray(VRCShader.PropertyToID("_Udon_CBIRP_Probe1"), _probe1);
             VRCShader.SetGlobalVectorArray(VRCShader.PropertyToID("_Udon_CBIRP_Probe2"), _probe2);
             VRCShader.SetGlobalVectorArray(VRCShader.PropertyToID("_Udon_CBIRP_Probe3"), _probe3);
+        }
+
+        public void SetCrtUniforms()
+        {
+            _lightConeRadii = new float[_lightSize];
+            int j = 0;
+            for (int i = 0; i < _lightTransforms.Length; i++)
+            {
+                var t = _lightTransforms[i];
+                if (!t.gameObject.activeInHierarchy)
+                {
+                    continue;
+                }
+
+                if (_lightsType[i] != 1)
+                {
+                    continue;
+                }
+                _lightConeRadii[j] = _lightsOuterAngle[i];
+
+                j++;
+            }
+
+            lightCull.material.SetFloatArray(_Udon_CBIRP_ConeRadii, _lightConeRadii);
         }
 
         public Vector4 GetLightData0(int index)
@@ -265,6 +294,7 @@ namespace z3y
                 _uniformIndexPtr[i] = activeLights;
                 activeLights++;
             }
+            SetCrtUniforms();
         }
 
 

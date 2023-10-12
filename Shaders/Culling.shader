@@ -25,6 +25,8 @@
             #include "CBIRP.hlsl"
             #include "UnityCustomRenderTexture.cginc"
 
+            float _Udon_CBIRP_ConeRadii[128];
+
             Texture2D<float4> _MainTex;
 
             uint4 frag (v2f_customrendertexture i) : SV_Target
@@ -54,7 +56,7 @@
 
                 positionWS *= voxel_size;
                 positionWS -= CBIRP_CULL_FAR - voxel_size;
-                positionWS += CBIRP_PLAYER_POS; // replace with something more reliable, like global position from udon
+                positionWS += CBIRP_PLAYER_POS;
 
                 float3 positionMin = positionWS - voxel_size;
                 float3 positionMax = positionWS;
@@ -106,7 +108,7 @@
                     #ifdef CBIRP_ASSUME_NO_Y
                         lightPositionWS.y = 0;
                     #endif
-                    float3 lightDirection = (lightPositionWS - positionWS);
+                    float3 positionToLight = (lightPositionWS - positionWS);
 
 
                     float3 lightPosMin = lightPositionWS - r;
@@ -114,9 +116,9 @@
 
                     UNITY_BRANCH
                     if (all(
-                            positionMax > lightPosMin && positionMax < lightPosMax ||
-                            positionMin > lightPosMin && positionMin < lightPosMax ||
-                            positionMin < lightPositionWS && positionMax > lightPositionWS
+                            positionMax.xz > lightPosMin.xz && positionMax.xz < lightPosMax.xz ||
+                            positionMin.xz > lightPosMin.xz && positionMin.xz < lightPosMax.xz ||
+                            positionMin.xz < lightPositionWS.xz && positionMax.xz > lightPositionWS.xz
                             
                         ) && insideY)
                     {
@@ -129,13 +131,36 @@
                         r *= r;
 
                         //UNITY_BRANCH
-                        if (dot(lightDirection, lightDirection) < r)
+                        if (dot(positionToLight, positionToLight) < r)
                         {
                             UNITY_BRANCH
                             if (isSpot)
                             {
-                                float atten = CBIRP::GetSpotAngleAttenuation(lightDirection, light.direction, 1, offset);
-                                if (atten <= 0) continue;
+                                // thanks iq https://iquilezles.org/articles/diskbbox/
+                                float rangeSqr = sqrt(light.range);
+                                float spotAngle = _Udon_CBIRP_ConeRadii[lightIndex];
+                                float angleA = (spotAngle * (UNITY_PI / 180)) * 0.5f;
+                                float cosAngleA = cos(angleA);
+                                float angleB = UNITY_PI * 0.5f - angleA;
+                                float coneRadius = rangeSqr * cosAngleA * sin(angleA) / sin(angleB);
+                                float3 coneEnd = lightPositionWS + light.direction * rangeSqr;
+                                float3 coneStart = lightPositionWS;
+
+                                float3 pa = coneStart;
+                                float3 pb = coneEnd;
+                                float ra = 0;
+                                float rb = coneRadius;
+                                float3 a = pb - pa;
+                                float3 e = sqrt( 1.0 - a*a/dot(a,a) );
+                                float3 coneMin =  min( pa - e*ra, pb - e*rb );
+                                float3 coneMax = max( pa + e*ra, pb + e*rb );
+                                coneMin -= offset;
+                                coneMax += offset;
+
+                                if (!all(
+                                    positionMax.xz > coneMin.xz && positionMax.xz < coneMax.xz ||
+                                    positionMin.xz > coneMin.xz && positionMin.xz < coneMax.xz                                 
+                                )) continue;
                             }
                             if (packShift >= 32)
                             {
