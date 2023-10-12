@@ -193,7 +193,14 @@ namespace z3y
                 {
                     continue;
                 }
-                _lightConeRadii[j] = _lightsOuterAngle[i];
+                float rangeSqr = _lightsRange[i];
+                float spotAngle = _lightsOuterAngle[i];
+                float angleA = spotAngle * (Mathf.PI / 180) * 0.5f;
+                float cosAngleA = Mathf.Cos(angleA);
+                float angleB = Mathf.PI * 0.5f - angleA;
+                float coneRadius = rangeSqr * cosAngleA * Mathf.Sin(angleA) / Mathf.Sin(angleB);
+
+                _lightConeRadii[j] = coneRadius;
 
                 j++;
             }

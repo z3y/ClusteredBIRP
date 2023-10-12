@@ -138,11 +138,14 @@
                             {
                                 // thanks iq https://iquilezles.org/articles/diskbbox/
                                 float rangeSqr = sqrt(light.range);
-                                float spotAngle = _Udon_CBIRP_ConeRadii[lightIndex];
-                                float angleA = (spotAngle * (UNITY_PI / 180)) * 0.5f;
-                                float cosAngleA = cos(angleA);
-                                float angleB = UNITY_PI * 0.5f - angleA;
-                                float coneRadius = rangeSqr * cosAngleA * sin(angleA) / sin(angleB);
+
+                                // precalculated in udon
+                                // float spotAngle = _Udon_CBIRP_SpotAngles[lightIndex];
+                                // float angleA = (spotAngle * (UNITY_PI / 180)) * 0.5f;
+                                // float cosAngleA = cos(angleA);
+                                // float angleB = UNITY_PI * 0.5f - angleA;
+                                // float coneRadius = rangeSqr * cosAngleA * sin(angleA) / sin(angleB);
+                                float coneRadius = _Udon_CBIRP_ConeRadii[lightIndex];
                                 float3 coneEnd = lightPositionWS + light.direction * rangeSqr;
                                 float3 coneStart = lightPositionWS;
 

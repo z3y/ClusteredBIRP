@@ -15,7 +15,7 @@ namespace z3y
         public float range = 3f;
 
         [Range(0f, 100f)] public float innerAnglePercent = 70f;
-        [Range(0f, 180f)] public float outerAngle = 45f;
+        [Range(0f, 179f)] public float outerAngle = 45f;
 
         // private MaterialPropertyBlock _propertyBlock;
         //private MeshRenderer _meshRenderer;
