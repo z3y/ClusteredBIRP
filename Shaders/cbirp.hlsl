@@ -52,32 +52,15 @@ namespace CBIRP
     float GetSquareFalloffAttenuation(float distanceSquare, float lightInvRadius2)
     {
         float factor = distanceSquare * lightInvRadius2;
-        float smoothFactor = max(1.0 - factor * factor, 0.0);
+        float smoothFactor = saturate(1.0 - factor * factor);
         return (smoothFactor * smoothFactor) / max(distanceSquare, 1e-4);
     }
 
-    float GetSpotAngleAttenuation(float3 l, float3 lightDir, float spotScale, float spotOffset)
+    float GetSpotAngleAttenuation(float3 spotForward, float3 l, float spotScale, float spotOffset)
     {
-        float cd = dot(normalize(-lightDir), l);
+        float cd = dot(-spotForward, l);
         float attenuation = saturate(cd * spotScale + spotOffset);
         return attenuation * attenuation;
-    }
-    
-    float PackFloats(float a, float b)
-    {
-        //Packing
-        uint a16 = f32tof16(a);
-        uint b16 = f32tof16(b);
-        uint abPacked = (a16 << 16) | b16;
-        return asfloat(abPacked);
-    }
-
-    void UnpackFloat(float input, out float a, out float b) {
-
-        //Unpacking
-        uint uintInput = asuint(input);
-        a = f16tof32(uintInput >> 16);
-        b = f16tof32(uintInput);
     }
 
     float3 Heatmap(float v)
@@ -155,75 +138,75 @@ namespace CBIRP
         return index_2d;
     }
 
-    void ComputeLights(uint2 cullIndex, float3 positionWS, float3 normalWS, float3 viewDirectionWS, half3 f0, half NoV, half roughness, half4 shadowmask, inout half3 diffuse, inout half3 specular)
+    void ComputeLights(uint2 cullIndex, float3 positionWS, float3 normalWS, float3 viewDirectionWS, half3 f0, half NoV, half roughness, half4 shadowmask, inout half3 diffuse, inout half3 specular, half energyCompensation = 1.0)
     {
         half clampedRoughness = max(roughness * roughness, 0.002);
-        half3 debug = 0;
+        half debug = 0;
 
         CBIRP_CLUSTER_START(cullIndex)
 
-            debug.x++;
+            debug++;
 
             Light light = Light::DecodeLight(index);
 
-            float3 lightDirection = light.positionWS - positionWS;
-            float distanceSquare = dot(lightDirection, lightDirection);
+            float3 positionToLight = light.positionWS - positionWS;
+            float distanceSquare = dot(positionToLight, positionToLight);
 
             UNITY_BRANCH
             if (distanceSquare < light.range)
             {
                 light.range = 1.0 / light.range;
-                lightDirection = normalize(lightDirection);
-                half NoL = saturate(dot(normalWS, lightDirection));
+                float3 L = normalize(positionToLight);
+                half NoL = saturate(dot(normalWS, L));
                 float attenuation = GetSquareFalloffAttenuation(distanceSquare, light.range);
 
-                UNITY_BRANCH
                 if (light.spot)
                 {
-                    attenuation *= GetSpotAngleAttenuation(lightDirection, light.direction, light.spotScale, light.spotOffset);
+                    attenuation *= GetSpotAngleAttenuation(light.direction, L, light.spotScale, light.spotOffset);
                 }
 
                 #ifdef LIGHTMAP_ON
-                    if (light.shadowmask)
-                    {
-                        attenuation *= shadowmask[light.shadowmaskID];
-                    }
+                if (light.shadowmask)
+                {
+                    attenuation *= shadowmask[light.shadowmaskID];
+                }
                 #endif
 
-                debug.y += attenuation > 0;
+                UNITY_BRANCH
+                if (attenuation > 0 && NoL > 0)
+                {
+                    half3 currentDiffuse = attenuation * light.color * NoL;
 
+                    float3 halfVector = Unity_SafeNormalize(L + viewDirectionWS);
+                    half LoH = saturate(dot(L, halfVector));
 
-                half3 currentDiffuse = attenuation * light.color * NoL;
+                    #if !defined(CBIRP_LOW) && !defined(LIGHTMAP_ON)
+                        half burley = CBIRPFilament::Fd_Burley(roughness, NoV, NoL, LoH);
+                        currentDiffuse *= burley;
+                    #endif
 
-                float3 halfVector = Unity_SafeNormalize(lightDirection + viewDirectionWS);
-                half LoH = saturate(dot(lightDirection, halfVector));
+                    #ifdef LIGHTMAP_ON
+                        diffuse += currentDiffuse * !light.specularOnly;
+                    #else
+                        diffuse += currentDiffuse;
+                    #endif
 
-                #if !defined(CBIRP_LOW) && !defined(LIGHTMAP_ON)
-                    half burley = CBIRPFilament::Fd_Burley(roughness, NoV, NoL, LoH);
-                    currentDiffuse *= burley;
-                #endif
-
-                #ifdef LIGHTMAP_ON
-                    diffuse += currentDiffuse * !light.specularOnly;
-                #else
-                    diffuse += currentDiffuse;
-                #endif
-
-                #ifndef _SPECULARHIGHLIGHTS_OFF
-                    half vNoH = saturate(dot(normalWS, halfVector));
-                    half vLoH = saturate(dot(lightDirection, halfVector));
-                    half3 Fv = CBIRPFilament::F_Schlick(vLoH, f0);
-                    half Dv = CBIRPFilament::D_GGX(vNoH, clampedRoughness);
-                    half Vv = CBIRPFilament::V_SmithGGXCorrelatedFast(NoV, NoL, clampedRoughness);
-                    half3 currentSpecular = max(0.0, (Dv * Vv) * Fv) * currentDiffuse;
-                    specular += currentSpecular;
-                #endif
+                    #ifndef _SPECULARHIGHLIGHTS_OFF
+                        half vNoH = saturate(dot(normalWS, halfVector));
+                        half vLoH = saturate(dot(L, halfVector));
+                        half3 Fv = CBIRPFilament::F_Schlick(vLoH, f0);
+                        half Dv = CBIRPFilament::D_GGX(vNoH, clampedRoughness);
+                        half Vv = CBIRPFilament::V_SmithGGXCorrelatedFast(NoV, NoL, clampedRoughness);
+                        half3 currentSpecular = max(0.0, (Dv * Vv) * Fv * energyCompensation) * currentDiffuse;
+                        specular += currentSpecular;
+                    #endif
+                }
 
             }
         CBIRP_CLUSTER_END
 
         #ifdef _CBIRP_DEBUG
-        diffuse = Heatmap((debug.x) / 16.);
+            diffuse = Heatmap((debug) / 16.);
         #endif
 
         specular *= UNITY_PI;

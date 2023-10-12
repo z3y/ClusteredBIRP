@@ -5,9 +5,11 @@
         _Color("Color", Color) = (1,1,1,1)
         _MainTex ("Albedo", 2D) = "white" {}
 
+        [Toggle(_NORMALMAP)] _NormalMapToggle ("Normal Map Enable", Float) = 0
         [NoScaleOffset] [Normal] _BumpMap ("Normal Map", 2D) = "bump" {}
         _BumpScale ("Normal Scale", Float) = 1.0
 
+        [Toggle(_MASKLMAP)] _MaskMapToggle ("Mask Map Enable", Float) = 0
         [NoScaleOffset] _MetallicGlossMap("Mask Map", 2D) = "white" {}
         _Roughness ("Roughness", Range(0.0, 1.0)) = 0.5
         _Metallic ("Metallic", Range(0.0, 1.0)) = 0.0
@@ -15,11 +17,9 @@
 
         [NonModifiableTextureData] [NoScaleOffset]_DFG ("DFG", 2D) = "white" {}
 
-        _Metallic ("Metallic", Range(0.0, 1.0)) = 0.0
         [Toggle(_CBIRP_DEBUG)] _CBIRPDebugModeEnable ("Debug", Float) = 0
         [Enum(Lights,0,Probes,1)] _CBIRPDebugMode ("Debug Mode", Float) = 0
     }
-    
 
 HLSLINCLUDE
 
@@ -27,7 +27,6 @@ HLSLINCLUDE
 #pragma vertex vert
 #pragma fragment frag
 #pragma shader_feature_local _CUTOUT
-#pragma shader_feature_local _EMISSION
 
 #ifdef LIGHTMAP_ON
     #define DIRLIGHTMAP_COMBINED
@@ -98,22 +97,6 @@ struct Material
     }
 };
 
-Texture2D _MainTex;
-SamplerState sampler_MainTex;
-Texture2D _BumpMap;
-SamplerState sampler_BumpMap;
-Texture2D _MetallicGlossMap;
-SamplerState sampler_MetallicGlossMap;
-
-CBUFFER_START(UnityPerMaterial)
-    float4 _MainTex_ST;
-    half4 _Color;
-    half _Roughness;
-    half _Metallic;
-    half _OcclusionStrength;
-    half _BumpScale;
-CBUFFER_END
-
 Varyings vert (Attributes attributes)
 {
     Varyings varyings;
@@ -147,6 +130,22 @@ Varyings vert (Attributes attributes)
     return varyings;
 }
 
+Texture2D _MainTex;
+SamplerState sampler_MainTex;
+Texture2D _BumpMap;
+SamplerState sampler_BumpMap;
+Texture2D _MetallicGlossMap;
+SamplerState sampler_MetallicGlossMap;
+
+CBUFFER_START(UnityPerMaterial)
+    float4 _MainTex_ST;
+    half4 _Color;
+    half _Roughness;
+    half _Metallic;
+    half _OcclusionStrength;
+    half _BumpScale;
+CBUFFER_END
+
 Material InitializeMaterial(Varyings varyings)
 {
     float2 mainUV = varyings.uv0 * _MainTex_ST.xy + _MainTex_ST.zw;
@@ -157,12 +156,20 @@ Material InitializeMaterial(Varyings varyings)
     m.alpha = mainTexture.a;
     m.albedo = mainTexture.rgb;
 
-    half4 normalMap = _BumpMap.Sample(sampler_BumpMap, mainUV);
-    half4 maskMap = _MetallicGlossMap.Sample(sampler_MetallicGlossMap, mainUV);
-    m.normalTS = UnpackScaleNormal(normalMap, _BumpScale);
-    m.roughness = maskMap.g * _Roughness;
-    m.metallic = maskMap.b * _Metallic;
-    m.occlusion = lerp(1, maskMap.r, _OcclusionStrength);
+    #ifdef _NORMALMAP
+        half4 normalMap = _BumpMap.Sample(sampler_BumpMap, mainUV);
+        m.normalTS = UnpackScaleNormal(normalMap, _BumpScale);
+    #endif
+
+    #ifdef _MASKMAP
+        half4 maskMap = _MetallicGlossMap.Sample(sampler_MetallicGlossMap, mainUV);
+        m.roughness = maskMap.g * _Roughness;
+        m.metallic = maskMap.b * _Metallic;
+        m.occlusion = lerp(1, maskMap.r, _OcclusionStrength);
+    #else
+        m.roughness = _Roughness;
+        m.metallic = _Metallic;
+    #endif
 
     return m;
 }
@@ -188,6 +195,10 @@ ENDHLSL
             // #pragma skip_variants SHADOWS_SCREEN DYNAMICLIGHTMAP_ON DIRLIGHTMAP_COMBINED LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK VERTEXLIGHT_ON LIGHTPROBE_SH
             // #pragma skip_variants SHADOWS_SCREEN VERTEXLIGHT_ON LIGHTPROBE_SH DYNAMICLIGHTMAP_ON LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK
             #pragma shader_feature_local _CBIRP_DEBUG
+
+            #pragma shader_feature_local _EMISSION
+            #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local _MASKMAP
             uint _CBIRPDebugMode;
 
             SamplerState custom_bilinear_clamp_sampler;
@@ -204,12 +215,17 @@ ENDHLSL
                 Material m = InitializeMaterial(varyings);
 
                 float3 normalWS = varyings.normalWS;
-                float3 tangentWS = varyings.tangentWS.xyz;
-                float crossSign = (varyings.tangentWS.w > 0.0 ? 1.0 : -1.0) * unity_WorldTransformParams.w;
-                float3 bitangentWS = crossSign * cross(varyings.normalWS.xyz, varyings.tangentWS.xyz);
-                float3x3 tangentToWorld = float3x3(tangentWS, bitangentWS, normalWS);
-                normalWS = mul(m.normalTS, tangentToWorld);
+                #ifdef _NORMALMAP
+                    float3 tangentWS = varyings.tangentWS.xyz;
+                    float crossSign = (varyings.tangentWS.w > 0.0 ? 1.0 : -1.0) * unity_WorldTransformParams.w;
+                    float3 bitangentWS = crossSign * cross(varyings.normalWS.xyz, varyings.tangentWS.xyz);
+                    float3x3 tangentToWorld = float3x3(tangentWS, bitangentWS, normalWS);
+                    normalWS = mul(m.normalTS, tangentToWorld);
+                #endif
                 normalWS = Unity_SafeNormalize(normalWS);
+
+                
+
 
                 float3 positionWS = varyings.positionWS;
 
@@ -324,12 +340,13 @@ ENDHLSL
 
             HLSLPROGRAM
             #pragma shader_feature EDITOR_VISUALIZATION
+            #pragma shader_feature_local _EMISSION
 
             half4 frag (Varyings varyings) : SV_Target
             {
                 Material m = InitializeMaterial(varyings);
 
-                half4 color = half4(m.albedo, m.alpha);
+                half4 color = half4(m.albedo + m.emission, m.alpha);
 
                 return color;
             }
