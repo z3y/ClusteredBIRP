@@ -9,7 +9,7 @@
         [NoScaleOffset] [Normal] _BumpMap ("Normal Map", 2D) = "bump" {}
         _BumpScale ("Normal Scale", Float) = 1.0
 
-        [Toggle(_MASKLMAP)] _MaskMapToggle ("Mask Map Enable", Float) = 0
+        [Toggle(_MASKMAP)] _MaskMapToggle ("Mask Map Enable", Float) = 0
         [NoScaleOffset] _MetallicGlossMap("Mask Map", 2D) = "white" {}
         _Roughness ("Roughness", Range(0.0, 1.0)) = 0.5
         _Metallic ("Metallic", Range(0.0, 1.0)) = 0.0
