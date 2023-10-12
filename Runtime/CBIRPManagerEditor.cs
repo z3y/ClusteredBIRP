@@ -104,7 +104,7 @@ namespace z3y
             manager.CopyActiveLights();
             manager.UpdateLightGlobals();
             manager.UpdateCullFar(manager.cullFar);
-            manager.SetCrtUniforms();
+            //manager.SetCrtUniforms();
 
         }
 

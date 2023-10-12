@@ -209,7 +209,7 @@ debug+=1;
 
         #ifdef _CBIRP_DEBUG
             // diffuse = Heatmap((debug) / 16.);
-            diffuse = debug / 2.;
+            diffuse = debug / 32.;
         #endif
 
         specular *= UNITY_PI;
@@ -352,7 +352,7 @@ debug+=1;
         CBIRP_CLUSTER_END
 
         #ifdef _CBIRP_DEBUG
-        return Heatmap((debug.x) / 16.);
+        return debug / 16.;
         #endif
         return irradiance;
     }

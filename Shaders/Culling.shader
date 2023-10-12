@@ -133,37 +133,38 @@
                         //UNITY_BRANCH
                         if (dot(positionToLight, positionToLight) < r)
                         {
-                            UNITY_BRANCH
+                            // UNITY_BRANCH
+                            // TODO: fix spot culling
                             if (isSpot)
                             {
                                 // thanks iq https://iquilezles.org/articles/diskbbox/
-                                float rangeSqr = sqrt(light.range);
+                                // float rangeSqr = sqrt(light.range);
 
-                                // precalculated in udon
-                                // float spotAngle = _Udon_CBIRP_SpotAngles[lightIndex];
-                                // float angleA = (spotAngle * (UNITY_PI / 180)) * 0.5f;
-                                // float cosAngleA = cos(angleA);
-                                // float angleB = UNITY_PI * 0.5f - angleA;
-                                // float coneRadius = rangeSqr * cosAngleA * sin(angleA) / sin(angleB);
-                                float coneRadius = _Udon_CBIRP_ConeRadii[lightIndex];
-                                float3 coneEnd = lightPositionWS + light.direction * rangeSqr;
-                                float3 coneStart = lightPositionWS;
+                                // // precalculated in udon
+                                // // float spotAngle = _Udon_CBIRP_SpotAngles[lightIndex];
+                                // // float angleA = (spotAngle * (UNITY_PI / 180)) * 0.5f;
+                                // // float cosAngleA = cos(angleA);
+                                // // float angleB = UNITY_PI * 0.5f - angleA;
+                                // // float coneRadius = rangeSqr * cosAngleA * sin(angleA) / sin(angleB);
+                                // float coneRadius = _Udon_CBIRP_ConeRadii[lightIndex];
+                                // float3 coneEnd = lightPositionWS + light.direction * rangeSqr;
+                                // float3 coneStart = lightPositionWS;
 
-                                float3 pa = coneStart;
-                                float3 pb = coneEnd;
-                                float ra = 0;
-                                float rb = coneRadius;
-                                float3 a = pb - pa;
-                                float3 e = sqrt( 1.0 - a*a/dot(a,a) );
-                                float3 coneMin =  min( pa - e*ra, pb - e*rb );
-                                float3 coneMax = max( pa + e*ra, pb + e*rb );
-                                coneMin -= offset;
-                                coneMax += offset;
+                                // float3 pa = coneStart;
+                                // float3 pb = coneEnd;
+                                // float ra = 0;
+                                // float rb = coneRadius;
+                                // float3 a = pb - pa;
+                                // float3 e = sqrt( 1.0 - a*a/dot(a,a) );
+                                // float3 coneMin =  min( pa - e*ra, pb - e*rb );
+                                // float3 coneMax = max( pa + e*ra, pb + e*rb );
+                                // coneMin -= offset;
+                                // coneMax += offset;
 
-                                if (!all(
-                                    positionMax.xz > coneMin.xz && positionMax.xz < coneMax.xz ||
-                                    positionMin.xz > coneMin.xz && positionMin.xz < coneMax.xz                                 
-                                )) continue;
+                                // if (!all(
+                                //     positionMax.xz > coneMin.xz && positionMax.xz < coneMax.xz ||
+                                //     positionMin.xz > coneMin.xz && positionMin.xz < coneMax.xz                                 
+                                // )) continue;
                             }
                             if (packShift >= 32)
                             {

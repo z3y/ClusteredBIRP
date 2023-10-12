@@ -177,7 +177,7 @@ namespace z3y
             VRCShader.SetGlobalVectorArray(VRCShader.PropertyToID("_Udon_CBIRP_Probe3"), _probe3);
         }
 
-        public void SetCrtUniforms()
+    /*    public void SetCrtUniforms()
         {
             _lightConeRadii = new float[_lightSize];
             int j = 0;
@@ -188,6 +188,7 @@ namespace z3y
                 {
                     continue;
                 }
+                j++;
 
                 if (_lightsType[i] != 1)
                 {
@@ -200,13 +201,12 @@ namespace z3y
                 float angleB = Mathf.PI * 0.5f - angleA;
                 float coneRadius = rangeSqr * cosAngleA * Mathf.Sin(angleA) / Mathf.Sin(angleB);
 
-                _lightConeRadii[j] = coneRadius;
+                _lightConeRadii[j-1] = coneRadius;
 
-                j++;
             }
 
             lightCull.material.SetFloatArray(_Udon_CBIRP_ConeRadii, _lightConeRadii);
-        }
+        }*/
 
         public Vector4 GetLightData0(int index)
         {
@@ -301,7 +301,7 @@ namespace z3y
                 _uniformIndexPtr[i] = activeLights;
                 activeLights++;
             }
-            SetCrtUniforms();
+            //SetCrtUniforms();
         }
 
 
