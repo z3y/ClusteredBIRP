@@ -47,7 +47,7 @@ MonoBehaviour:
   type: 0
   color: {r: 1, g: 1, b: 1, a: 1}
   intensity: 1
-  range: 3
+  range: 5
   innerAnglePercent: 70
   outerAngle: 45
   shadowMask: 0

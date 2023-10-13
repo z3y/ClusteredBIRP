@@ -22,6 +22,9 @@ namespace z3y
 
         public bool shadowMask = false;
         public bool specularOnlyShadowmask = false;
+        //public bool coockie = false;
+        //public byte cookieIndex;
+
         internal int _shadowMaskID = -1;
 
         //public bool flickering = false;
@@ -143,6 +146,7 @@ namespace z3y
                 bakeryLight.projMode = l.type == CBIRPLight.LightType.Point ? 
                     BakeryPointLight.ftLightProjectionMode.Omni :
                     BakeryPointLight.ftLightProjectionMode.Cone;
+                bakeryLight.cutoff = l.range; 
                 bakeryLight.MarkDirty();
 
             }
