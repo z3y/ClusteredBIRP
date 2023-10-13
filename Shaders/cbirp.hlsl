@@ -125,6 +125,23 @@ namespace CBIRP
 
     };
 
+    // Normalize that account for vectors with zero length
+    float3 SafeNormalize(float3 inVec)
+    {
+        const float flt_min = 1.175494351e-38;
+        float dp3 = max(flt_min, dot(inVec, inVec));
+        return inVec * rsqrt(dp3);
+    }
+
+    half ComputeSpecularAO(half NoV, half ao, half roughness)
+    {
+        #ifdef CBIRP_LOW
+        return ao;
+        #else
+        return clamp(pow(NoV + ao, exp2(-16.0 * roughness - 1.0)) - 1.0 + ao, 0.0, 1.0);
+        #endif
+    }
+
     uint2 CullIndex(float3 positionWS)
     {
         float voxel_size = CBIRP_VOXELS_SIZE;
@@ -179,7 +196,7 @@ debug+=1;
                 {
                     half3 currentDiffuse = attenuation * light.color * NoL;
 
-                    float3 halfVector = Unity_SafeNormalize(L + viewDirectionWS);
+                    float3 halfVector = CBIRP::SafeNormalize(L + viewDirectionWS);
                     half LoH = saturate(dot(L, halfVector));
 
                     #if !defined(CBIRP_LOW) && !defined(LIGHTMAP_ON)

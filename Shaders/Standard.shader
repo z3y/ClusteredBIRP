@@ -191,6 +191,10 @@ ENDHLSL
             #pragma multi_compile _ DIRECTIONAL
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+
+            #ifndef UNITY_SAMPLE_FULL_SH_PER_PIXEL
+                #define UNITY_SAMPLE_FULL_SH_PER_PIXEL
+            #endif
             // #pragma multi_compile_fwdbase
             // #pragma skip_variants SHADOWS_SCREEN DYNAMICLIGHTMAP_ON DIRLIGHTMAP_COMBINED LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK VERTEXLIGHT_ON LIGHTPROBE_SH
             // #pragma skip_variants SHADOWS_SCREEN VERTEXLIGHT_ON LIGHTPROBE_SH DYNAMICLIGHTMAP_ON LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK
@@ -222,7 +226,7 @@ ENDHLSL
                     float3x3 tangentToWorld = float3x3(tangentWS, bitangentWS, normalWS);
                     normalWS = mul(m.normalTS, tangentToWorld);
                 #endif
-                normalWS = Unity_SafeNormalize(normalWS);
+                normalWS = CBIRP::SafeNormalize(normalWS);
 
                 
 
@@ -263,12 +267,17 @@ ENDHLSL
                         half3 lightmapOcclusion = (dot(nL1, reflectVector) + 1.0) * L0 * 2;
                         lightmapOcclusion = max(0.0, lightmapOcclusion);
                     #else
+                        half3 sh = L0;
                         lightmapOcclusion = max(0.0, L0);
                     #endif
 
                     diffuse += max(0.0, sh);
+                    
+                    #ifdef CBIRP_LOW
+                        lightmapOcclusion = max(0.0, sh);
+                    #endif
                 #else
-                    diffuse += max(0.0, ShadeSH9(half4(normalWS, 1)));
+                    diffuse += ShadeSHPerPixel(normalWS, 0, positionWS);
                 #endif
                                 
                 #ifdef LIGHTMAP_ON
@@ -280,7 +289,7 @@ ENDHLSL
 
                 uint2 cullIndex = CBIRP::CullIndex(positionWS);
                 half3 light = 0;
-                CBIRP::ComputeLights(cullIndex, positionWS, normalWS, viewDirectionWS, f0, NoV, m.roughness, shadowmask, light, specular);
+                CBIRP::ComputeLights(cullIndex, positionWS, normalWS, viewDirectionWS, f0, NoV, m.roughness, shadowmask, light, specular, energyCompensation);
                 half3 probes = CBIRP::SampleProbes(cullIndex, reflectVector, positionWS, m.roughness);
 
                 #ifdef _CBIRP_DEBUG
@@ -296,10 +305,15 @@ ENDHLSL
                 half bentLightGrayscale = sqrt(dot(bentLight + light, 1.0));
                 probes *= bentLightGrayscale;
 
+                #ifndef CBIRP_LOW
+                    float horizon = min(1.0 + dot(reflectVector, normalWS), 1.0);
+                    probes *= horizon * horizon;
+                #endif
                 specular += probes * brdf * energyCompensation;
                 diffuse += light;
 
-                half4 color = half4(m.albedo * (1.0 - m.metallic) * (diffuse * m.occlusion) + specular + m.emission, m.alpha);
+                half ao = CBIRP::ComputeSpecularAO(NoV, m.occlusion, roughness2);
+                half4 color = half4(m.albedo * (1.0 - m.metallic) * (diffuse * m.occlusion) + (specular * ao) + m.emission, m.alpha);
                 return color;
             }
 
