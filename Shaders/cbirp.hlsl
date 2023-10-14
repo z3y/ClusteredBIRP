@@ -358,12 +358,14 @@ debug+=1;
 
         CBIRP_CLUSTER_END
 
+        #ifdef CBIRP_SKYPROBE
         UNITY_BRANCH
         if (totalWeight < 0.99f)
         {
             half4 encodedIrradiance = half4(_Udon_CBIRP_SkyProbe.SampleLevel(sampler_Udon_CBIRP_ReflectionProbes, half3(reflectVector), mip));
             irradiance += (1.0f - totalWeight) * encodedIrradiance;
         }
+        #endif
 
         #ifdef _CBIRP_DEBUG
         return debug / 16.;

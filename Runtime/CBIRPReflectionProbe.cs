@@ -8,17 +8,15 @@ namespace z3y
     [ExecuteInEditMode]
     public class CBIRPReflectionProbe : MonoBehaviour
     {
-        public ReflectionProbe probe;
+        [HideInInspector] public ReflectionProbe probe;
 
         [HideInInspector] public Vector4 unity_SpecCube0_ProbePosition;
         [HideInInspector] public Vector4 unity_SpecCube0_BoxMin;
         [HideInInspector] public Vector4 unity_SpecCube0_BoxMax;
         [HideInInspector] public Vector4 unity_SpecCube0_HDR;
 
-        private MaterialPropertyBlock _propertyBlock;
-        private MeshRenderer _meshRenderer;
 
-        public int cubeArrayIndex = 0;
+        [HideInInspector] public int cubeArrayIndex = 0;
 
         void Start()
         {

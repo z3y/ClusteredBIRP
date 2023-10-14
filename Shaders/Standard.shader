@@ -227,10 +227,7 @@ ENDHLSL
             uint _CBIRPDebugMode;
 
             SamplerState custom_bilinear_clamp_sampler;
-                        
-            #ifndef CBIRP_LOW
-                Texture2D _DFG;
-            #endif
+            Texture2D _DFG;
 
             #ifdef CBIRP_LOW
                 #undef _GEOMETRIC_SPECULAR_AA

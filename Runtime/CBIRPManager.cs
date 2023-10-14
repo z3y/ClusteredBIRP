@@ -177,10 +177,7 @@ namespace z3y
             VRCShader.SetGlobalVectorArray(VRCShader.PropertyToID("_Udon_CBIRP_Probe2"), _probe2);
             VRCShader.SetGlobalVectorArray(VRCShader.PropertyToID("_Udon_CBIRP_Probe3"), _probe3);
 
-            if (skyProbe)
-            {
-                VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_SkyProbe"), skyProbe);
-            }
+            VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_SkyProbe"), skyProbe);
         }
 
     /*    public void SetCrtUniforms()
