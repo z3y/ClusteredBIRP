@@ -15,6 +15,9 @@
         _Metallic ("Metallic", Range(0.0, 1.0)) = 0.0
         _OcclusionStrength ("Occlusion", Range(0.0, 1.0)) = 1.0
 
+        [Toggle(_GEOMETRIC_SPECULAR_AA)] _GeometricSpecularAAToggle ("Geometric Specular AA", Float) = 0
+        [PowerSlider(2)] _GeometricSpecularAAVariance ("GSAA Variance", Range(0.0, 1.0)) = 0.15
+        [PowerSlider(2)] _GeometricSpecularAAThreshold ("GSAA Threshold", Range(0.0, 1.0)) = 0.1
         [NonModifiableTextureData] [NoScaleOffset]_DFG ("DFG", 2D) = "white" {}
 
         [Toggle(_CBIRP_DEBUG)] _CBIRPDebugModeEnable ("Debug", Float) = 0
@@ -83,6 +86,10 @@ struct Material
     half3 emission;
     half occlusion;
 
+    half gsaaVariance;
+    half gsaaThreshold;
+    half reflectance;
+
     static Material Initialize()
     {
         Material m = (Material)0;
@@ -93,6 +100,11 @@ struct Material
         m.normalTS = half3(0, 0, 1);
         m.emission = 0;
         m.occlusion = 1;
+
+        m.reflectance = 0.5;
+        m.gsaaVariance = 0.15;
+        m.gsaaThreshold = 0.1;
+
         return m;
     }
 };
@@ -144,6 +156,8 @@ CBUFFER_START(UnityPerMaterial)
     half _Metallic;
     half _OcclusionStrength;
     half _BumpScale;
+    half _GeometricSpecularAAVariance;
+    half _GeometricSpecularAAThreshold;
 CBUFFER_END
 
 Material InitializeMaterial(Varyings varyings)
@@ -169,6 +183,11 @@ Material InitializeMaterial(Varyings varyings)
     #else
         m.roughness = _Roughness;
         m.metallic = _Metallic;
+    #endif
+
+    #ifdef _GEOMETRIC_SPECULAR_AA
+        m.gsaaThreshold = _GeometricSpecularAAThreshold;
+        m.gsaaVariance = _GeometricSpecularAAVariance;
     #endif
 
     return m;
@@ -203,12 +222,17 @@ ENDHLSL
             #pragma shader_feature_local _EMISSION
             #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local _MASKMAP
+            #pragma shader_feature_local_fragment _GEOMETRIC_SPECULAR_AA
             uint _CBIRPDebugMode;
 
             SamplerState custom_bilinear_clamp_sampler;
                         
             #ifndef CBIRP_LOW
                 Texture2D _DFG;
+            #endif
+
+            #ifdef CBIRP_LOW
+                #undef _GEOMETRIC_SPECULAR_AA
             #endif
             
             half4 frag (Varyings varyings) : SV_Target
@@ -219,6 +243,7 @@ ENDHLSL
                 Material m = InitializeMaterial(varyings);
 
                 float3 normalWS = varyings.normalWS;
+                float3 geometricNormalWS = normalize(varyings.normalWS);
                 #ifdef _NORMALMAP
                     float3 tangentWS = varyings.tangentWS.xyz;
                     float crossSign = (varyings.tangentWS.w > 0.0 ? 1.0 : -1.0) * unity_WorldTransformParams.w;
@@ -235,7 +260,9 @@ ENDHLSL
 
                 float3 viewDirectionWS = normalize(UnityWorldSpaceViewDir(positionWS));
                 half NoV = abs(dot(normalWS, viewDirectionWS)) + 1e-5f;
-                half reflectance = 0.5;
+                #ifdef _GEOMETRIC_SPECULAR_AA
+                    m.roughness = CBIRPFilament::GeometricSpecularAA(geometricNormalWS, m.roughness, m.gsaaVariance, m.gsaaThreshold);
+                #endif
                 half roughness2 = m.roughness * m.roughness;
                 half roughness2Clamped = max(roughness2, 0.002);
                 float3 reflectVector = reflect(-viewDirectionWS, normalWS);
@@ -244,10 +271,10 @@ ENDHLSL
                 #endif
 
 
-                half3 f0 = 0.16 * reflectance * reflectance * (1.0 - m.metallic) + m.albedo * m.metallic;
+                half3 f0 = 0.16 * m.reflectance * m.reflectance * (1.0 - m.metallic) + m.albedo * m.metallic;
                 half3 brdf;
                 half3 energyCompensation;
-                CBIRP::EnvironmentBRDF(_DFG, custom_bilinear_clamp_sampler, NoV, m.roughness, f0, brdf, energyCompensation);
+                CBIRPFilament::EnvironmentBRDF(_DFG, custom_bilinear_clamp_sampler, NoV, m.roughness, f0, brdf, energyCompensation);
 
                 half3 diffuse = 0;
                 half3 specular = 0;
@@ -282,7 +309,6 @@ ENDHLSL
                                 
                 #ifdef LIGHTMAP_ON
                     half4 shadowmask = _Udon_CBIRP_ShadowMask.SampleLevel(custom_bilinear_clamp_sampler, lightmapUV, 0);
-                    // half4 shadowmask = 1;
                 #else
                     half4 shadowmask = 1;
                 #endif
@@ -312,7 +338,7 @@ ENDHLSL
                 specular += probes * brdf * energyCompensation;
                 diffuse += light;
 
-                half ao = CBIRP::ComputeSpecularAO(NoV, m.occlusion, roughness2);
+                half ao = CBIRPFilament::ComputeSpecularAO(NoV, m.occlusion, roughness2);
                 half4 color = half4(m.albedo * (1.0 - m.metallic) * (diffuse * m.occlusion) + (specular * ao) + m.emission, m.alpha);
                 return color;
             }

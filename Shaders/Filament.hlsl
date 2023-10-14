@@ -30,9 +30,13 @@ namespace CBIRPFilament
         return lightScatter * viewScatter;
     }
 
-    half computeSpecularAO(half NoV, half ao, half roughness)
+    half ComputeSpecularAO(half NoV, half ao, half roughness)
     {
+        #ifdef CBIRP_LOW
+        return ao;
+        #else
         return clamp(pow(NoV + ao, exp2(-16.0 * roughness - 1.0)) - 1.0 + ao, 0.0, 1.0);
+        #endif
     }
 
     half D_GGX(half NoH, half roughness)
@@ -86,9 +90,8 @@ namespace CBIRPFilament
         // Kelemen 2001, "A Microfacet Based Coupled Specular-Matte BRDF Model with Importance Sampling"
         return saturate(0.25 / (LoH * LoH));
     }
-
     
-    half GeometricSpecularAA(float3 worldNormal, half perceptualRoughness, half varianceIn, half thresholdIn)
+    half GeometricSpecularAA(float3 geometricNormalWS, half perceptualRoughness, half varianceIn, half thresholdIn)
     {
         // Kaplanyan 2016, "Stable specular highlights"
         // Tokuyoshi 2017, "Error Reduction and Simplification for Shading Anti-Aliasing"
@@ -101,8 +104,8 @@ namespace CBIRPFilament
         // approximation but it works well enough for our needs and provides an improvement
         // over our original implementation based on Vlachos 2015, "Advanced VR Rendering".
 
-        float3 du = ddx(worldNormal);
-        float3 dv = ddy(worldNormal);
+        float3 du = ddx(geometricNormalWS);
+        float3 dv = ddy(geometricNormalWS);
 
         half variance = varianceIn * (dot(du, du) + dot(dv, dv));
 
@@ -111,5 +114,29 @@ namespace CBIRPFilament
         half squareRoughness = saturate(roughness * roughness + kernelRoughness);
 
         return sqrt(sqrt(squareRoughness));
+    }
+        
+    half3 EnvironmentBRDFApproximation(half perceptualRoughness, half NoV, half3 f0)
+    {
+        // original code from https://blog.selfshadow.com/publications/s2013-shading-course/lazarov/s2013_pbs_black_ops_2_notes.pdf
+        half g = 1 - perceptualRoughness;
+        half4 t = half4(1 / 0.96, 0.475, (0.0275 - 0.25 * 0.04) / 0.96, 0.25);
+        t *= half4(g, g, g, g);
+        t += half4(0.0, 0.0, (0.015 - 0.75 * 0.04) / 0.96, 0.75);
+        half a0 = t.x * min(t.y, exp2(-9.28 * NoV)) + t.z;
+        half a1 = t.w;
+        return saturate(lerp(a0, a1, f0));
+    }
+
+    void EnvironmentBRDF(Texture2D dfgTex, SamplerState dfgSampler, half NoV, half perceptualRoughness, half3 f0, out half3 brdf, out half3 energyCompensation)
+    {
+        #if defined(CBIRP_LOW)
+            energyCompensation = 1.0;
+            brdf = EnvironmentBRDFApproximation(perceptualRoughness, NoV, f0);
+        #else
+            float2 dfg = dfgTex.SampleLevel(dfgSampler, float2(NoV, perceptualRoughness), 0).rg;
+            brdf = lerp(dfg.xxx, dfg.yyy, f0);
+            energyCompensation = 1.0 + f0 * (1.0 / dfg.y - 1.0);
+        #endif
     }
 }

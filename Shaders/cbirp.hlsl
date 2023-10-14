@@ -49,11 +49,27 @@ cbuffer CBIRP_Uniforms
 
 namespace CBIRP
 {
+    // from filament
     float GetSquareFalloffAttenuation(float distanceSquare, float lightInvRadius2)
     {
         float factor = distanceSquare * lightInvRadius2;
         float smoothFactor = saturate(1.0 - factor * factor);
         return (smoothFactor * smoothFactor) / max(distanceSquare, 1e-4);
+    }
+
+    // from bakery
+    float ftLightFalloff(float distanceSquare, float lightInvRadius2)
+    {
+        float falloff = saturate(1.0f - pow(sqrt(distanceSquare * lightInvRadius2), 4.0f)) / (distanceSquare + 1.0f);
+        return falloff;
+    }
+    
+    // custom
+    float GetSquareFalloffAttenuationCustom(float distanceSquare, float lightInvRadius2)
+    {
+        float factor = distanceSquare * lightInvRadius2;
+        float smoothFactor = saturate(1.0 - factor * factor);
+        return (smoothFactor * smoothFactor) / (distanceSquare + 1.0);
     }
 
     float GetSpotAngleAttenuation(float3 spotForward, float3 l, float spotScale, float spotOffset)
@@ -133,15 +149,6 @@ namespace CBIRP
         return inVec * rsqrt(dp3);
     }
 
-    half ComputeSpecularAO(half NoV, half ao, half roughness)
-    {
-        #ifdef CBIRP_LOW
-        return ao;
-        #else
-        return clamp(pow(NoV + ao, exp2(-16.0 * roughness - 1.0)) - 1.0 + ao, 0.0, 1.0);
-        #endif
-    }
-
     uint2 CullIndex(float3 positionWS)
     {
         float voxel_size = CBIRP_VOXELS_SIZE;
@@ -174,7 +181,9 @@ debug+=1;
                 light.range = 1.0 / light.range;
                 float3 L = normalize(positionToLight);
                 half NoL = saturate(dot(normalWS, L));
-                float attenuation = GetSquareFalloffAttenuation(distanceSquare, light.range);
+                // float attenuation = GetSquareFalloffAttenuation(distanceSquare, light.range);
+                // float attenuation = ftLightFalloff(distanceSquare, light.range);
+                float attenuation = GetSquareFalloffAttenuationCustom(distanceSquare, light.range);
 
                 if (light.spot)
                 {
@@ -230,30 +239,6 @@ debug+=1;
         #endif
 
         specular *= UNITY_PI;
-    }
-    
-    half3 EnvironmentBRDFApproximation(half perceptualRoughness, half NoV, half3 f0)
-    {
-        // original code from https://blog.selfshadow.com/publications/s2013-shading-course/lazarov/s2013_pbs_black_ops_2_notes.pdf
-        half g = 1 - perceptualRoughness;
-        half4 t = half4(1 / 0.96, 0.475, (0.0275 - 0.25 * 0.04) / 0.96, 0.25);
-        t *= half4(g, g, g, g);
-        t += half4(0.0, 0.0, (0.015 - 0.75 * 0.04) / 0.96, 0.75);
-        half a0 = t.x * min(t.y, exp2(-9.28 * NoV)) + t.z;
-        half a1 = t.w;
-        return saturate(lerp(a0, a1, f0));
-    }
-
-    void EnvironmentBRDF(Texture2D dfgTex, SamplerState dfgSampler, half NoV, half perceptualRoughness, half3 f0, out half3 brdf, out half3 energyCompensation)
-    {
-        #if defined(CBIRP_LOW)
-            energyCompensation = 1.0;
-            brdf = EnvironmentBRDFApproximation(perceptualRoughness, NoV, f0);
-        #else
-            float2 dfg = dfgTex.SampleLevel(dfgSampler, float2(NoV, perceptualRoughness), 0).rg;
-            brdf = lerp(dfg.xxx, dfg.yyy, f0);
-            energyCompensation = 1.0 + f0 * (1.0 / dfg.y - 1.0);
-        #endif
     }
 
     half3 BoxProjectedCubemapDirection(half3 reflectionWS, float3 positionWS, float4 cubemapPositionWS, float4 boxMin, float4 boxMax)
