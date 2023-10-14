@@ -56,13 +56,6 @@ namespace CBIRP
         float smoothFactor = saturate(1.0 - factor * factor);
         return (smoothFactor * smoothFactor) / max(distanceSquare, 1e-4);
     }
-
-    // from bakery
-    float ftLightFalloff(float distanceSquare, float lightInvRadius2)
-    {
-        float falloff = saturate(1.0f - pow(sqrt(distanceSquare * lightInvRadius2), 4.0f)) / (distanceSquare + 1.0f);
-        return falloff;
-    }
     
     // custom
     float GetSquareFalloffAttenuationCustom(float distanceSquare, float lightInvRadius2)
@@ -138,7 +131,19 @@ namespace CBIRP
 
         // data 3
         half4 decodeInstructions;
+        half intensity;
 
+        static ReflectionProbe DecodeReflectionProbe(uint index)
+        {
+            ReflectionProbe p = (ReflectionProbe)0;
+            float4 data0 = _Udon_CBIRP_Probe0[index];
+            float4 data1 = _Udon_CBIRP_Probe1[index];
+            // float4 data2 = _Udon_CBIRP_Probe2[index];
+            // float4 data3 = _Udon_CBIRP_Probe3[index];
+            p.positionWS = data0.xyz;
+
+            return p;
+        }
     };
 
     // Normalize that account for vectors with zero length
@@ -162,7 +167,7 @@ namespace CBIRP
         return index_2d;
     }
 
-    void ComputeLights(uint2 cullIndex, float3 positionWS, float3 normalWS, float3 viewDirectionWS, half3 f0, half NoV, half roughness, half4 shadowmask, inout half3 diffuse, inout half3 specular, half energyCompensation = 1.0)
+    void ComputeLights(uint2 cullIndex, float3 positionWS, float3 normalWS, float3 viewDirectionWS, half3 f0, half NoV, half roughness, half4 shadowmask, inout half3 diffuse, inout half3 specular)
     {
         half clampedRoughness = max(roughness * roughness, 0.002);
         half debug = 0;
@@ -182,7 +187,6 @@ debug+=1;
                 float3 L = normalize(positionToLight);
                 half NoL = saturate(dot(normalWS, L));
                 // float attenuation = GetSquareFalloffAttenuation(distanceSquare, light.range);
-                // float attenuation = ftLightFalloff(distanceSquare, light.range);
                 float attenuation = GetSquareFalloffAttenuationCustom(distanceSquare, light.range);
 
                 if (light.spot)
@@ -225,7 +229,7 @@ debug+=1;
                         half3 Fv = CBIRPFilament::F_Schlick(vLoH, f0);
                         half Dv = CBIRPFilament::D_GGX(vNoH, clampedRoughness);
                         half Vv = CBIRPFilament::V_SmithGGXCorrelatedFast(NoV, NoL, clampedRoughness);
-                        half3 currentSpecular = max(0.0, (Dv * Vv) * Fv * energyCompensation) * currentDiffuse;
+                        half3 currentSpecular = max(0.0, (Dv * Vv) * Fv) * currentDiffuse;
                         specular += currentSpecular;
                     #endif
                 }

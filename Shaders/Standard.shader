@@ -35,6 +35,9 @@ HLSLINCLUDE
     #define DIRLIGHTMAP_COMBINED
 #endif
 
+#undef UNITY_SAMPLE_FULL_SH_PER_PIXEL
+#define UNITY_SAMPLE_FULL_SH_PER_PIXEL 1
+        
 #include "UnityCG.cginc"
 #include "Lighting.cginc"
 #include "AutoLight.cginc"
@@ -211,9 +214,7 @@ ENDHLSL
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
 
-            #ifndef UNITY_SAMPLE_FULL_SH_PER_PIXEL
-                #define UNITY_SAMPLE_FULL_SH_PER_PIXEL
-            #endif
+          
             // #pragma multi_compile_fwdbase
             // #pragma skip_variants SHADOWS_SCREEN DYNAMICLIGHTMAP_ON DIRLIGHTMAP_COMBINED LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK VERTEXLIGHT_ON LIGHTPROBE_SH
             // #pragma skip_variants SHADOWS_SCREEN VERTEXLIGHT_ON LIGHTPROBE_SH DYNAMICLIGHTMAP_ON LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK
@@ -234,6 +235,8 @@ ENDHLSL
             #ifdef CBIRP_LOW
                 #undef _GEOMETRIC_SPECULAR_AA
             #endif
+
+            #define MONO_SH
             
             half4 frag (Varyings varyings) : SV_Target
             {
@@ -281,30 +284,33 @@ ENDHLSL
                 
                 #ifdef LIGHTMAP_ON
                     float2 lightmapUV = varyings.lightmapUV;
-                    half3 L0 = DecodeLightmap(unity_Lightmap.SampleLevel(custom_bilinear_clamp_sampler, lightmapUV, 0));
+                    half3 illuminance = DecodeLightmap(unity_Lightmap.SampleLevel(custom_bilinear_clamp_sampler, lightmapUV, 0));
 
                     #ifdef DIRLIGHTMAP_COMBINED
                         half4 directionalLightmap = unity_LightmapInd.SampleLevel(custom_bilinear_clamp_sampler, lightmapUV, 0);
-                        // bakery mono sh
-                        half3 nL1 = directionalLightmap * 2 - 1;
-                        half3 L1x = nL1.x * L0 * 2;
-                        half3 L1y = nL1.y * L0 * 2;
-                        half3 L1z = nL1.z * L0 * 2;
-                        half3 sh = L0 + normalWS.x * L1x + normalWS.y * L1y + normalWS.z * L1z;
-                        half3 lightmapOcclusion = (dot(nL1, reflectVector) + 1.0) * L0 * 2;
-                        lightmapOcclusion = max(0.0, lightmapOcclusion);
-                    #else
-                        half3 sh = L0;
-                        lightmapOcclusion = max(0.0, L0);
+                        #ifdef MONO_SH
+                            half3 L0 = illuminance;
+                            half3 nL1 = directionalLightmap * 2.0 - 1.0;
+                            half3 L1x = nL1.x * L0 * 2.0;
+                            half3 L1y = nL1.y * L0 * 2.0;
+                            half3 L1z = nL1.z * L0 * 2.0;
+                            half3 sh = L0 + normalWS.x * L1x + normalWS.y * L1y + normalWS.z * L1z;
+                            illuminance = sh;
+                        #else
+                            half halfLambert = dot(normalWS, directionalLightmap.xyz - 0.5) + 0.5;
+                            illuminance = illuminance * halfLambert / max(1e-4, directionalLightmap.w);
+                        #endif
                     #endif
+                    diffuse += max(0.0, illuminance);
 
-                    diffuse += max(0.0, sh);
-                    
-                    #ifdef CBIRP_LOW
-                        lightmapOcclusion = max(0.0, sh);
+                    #if defined(MONO_SH) && !defined(CBIRP_LOW) && defined(DIRLIGHTMAP_COMBINED)
+                        half3 lightmapOcclusion = (dot(nL1, reflectVector) + 1.0) * L0 * 2.0;
+                    #else
+                        half3 lightmapOcclusion = illuminance;
                     #endif
+                    
                 #else
-                    diffuse += ShadeSHPerPixel(normalWS, 0, positionWS);
+                    diffuse += ShadeSHPerPixel(normalWS,  0, positionWS);
                 #endif
                                 
                 #ifdef LIGHTMAP_ON
@@ -315,7 +321,7 @@ ENDHLSL
 
                 uint2 cullIndex = CBIRP::CullIndex(positionWS);
                 half3 light = 0;
-                CBIRP::ComputeLights(cullIndex, positionWS, normalWS, viewDirectionWS, f0, NoV, m.roughness, shadowmask, light, specular, energyCompensation);
+                CBIRP::ComputeLights(cullIndex, positionWS, normalWS, viewDirectionWS, f0, NoV, m.roughness, shadowmask, light, specular);
                 half3 probes = CBIRP::SampleProbes(cullIndex, reflectVector, positionWS, m.roughness);
 
                 #ifdef _CBIRP_DEBUG
@@ -328,14 +334,15 @@ ENDHLSL
                     half3 bentLight = diffuse;
                 #endif
 
-                half bentLightGrayscale = sqrt(dot(bentLight + light, 1.0));
+                half bentLightGrayscale = saturate(sqrt(dot(bentLight + light, 1.0)));
                 probes *= bentLightGrayscale;
 
                 #ifndef CBIRP_LOW
                     float horizon = min(1.0 + dot(reflectVector, normalWS), 1.0);
                     probes *= horizon * horizon;
                 #endif
-                specular += probes * brdf * energyCompensation;
+                specular += probes * brdf;
+                specular *= energyCompensation;
                 diffuse += light;
 
                 half ao = CBIRPFilament::ComputeSpecularAO(NoV, m.occlusion, roughness2);

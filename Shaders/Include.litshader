@@ -20,10 +20,9 @@ CODE_START
                 #endif
 
         CBIRP::ComputeLights(cullIndex, IN.positionWS, sd.normalWS, sd.viewDirectionWS, sd.f0, sd.NoV, sd.perceptualRoughness, shadowmask, giData.Light, giData.Specular);
+        giData.Specular *= sd.energyCompensation;
 
-        half lightGrayscale = sqrt(dot(giData.IndirectDiffuse + giData.Light, 1.0));
-        half specOccl = saturate(lerp(1.0, lightGrayscale, surfaceDescription.SpecularOcclusion));
-        giData.Reflections = CBIRP::SampleProbes(cullIndex, sd.reflectionDirection, IN.positionWS, sd.perceptualRoughness).xyz * sd.brdf * sd.energyCompensation * specOccl;
+        giData.Reflections = CBIRP::SampleProbes(cullIndex, sd.reflectionDirection, IN.positionWS, sd.perceptualRoughness).xyz * sd.brdf * sd.energyCompensation * sd.specularOcclusion;
     }
 
     #define ModifyLighting ModifyLightingCBIRP
