@@ -7,6 +7,7 @@
 // Texture2D<float4> _UdonLightUniforms;
 Texture2D<uint4> _Udon_CBIRP_Culling;
 TextureCubeArray _Udon_CBIRP_ReflectionProbes;
+TextureCube _Udon_CBIRP_SkyProbe;
 SamplerState sampler_Udon_CBIRP_ReflectionProbes;
 Texture2D _Udon_CBIRP_ShadowMask;
 float4 _Udon_CBIRP_PlayerCamera;
@@ -288,11 +289,11 @@ debug+=1;
         return saturate(min(weightDir.x, min(weightDir.y, weightDir.z)));
     }
 
-    half CalculateProbeVolumeSqrMagnitude(float4 probeBoxMin, float4 probeBoxMax)
-    {
-        half3 maxToMin = half3(probeBoxMax.xyz - probeBoxMin.xyz);
-        return dot(maxToMin, maxToMin);
-    }
+    // half CalculateProbeVolumeSqrMagnitude(float4 probeBoxMin, float4 probeBoxMax)
+    // {
+    //     half3 maxToMin = half3(probeBoxMax.xyz - probeBoxMin.xyz);
+    //     return dot(maxToMin, maxToMin);
+    // }
 
     #define FLT_EPSILON     1.192092896e-07 // Smallest positive number, such that 1.0 + FLT_EPSILON != 1.0
 
@@ -350,12 +351,19 @@ debug+=1;
                 totalWeight += weight;
 
                 half3 reflectVectorBox = BoxProjectedCubemapDirection(reflectVector, positionWS, probePosition, boxMin, boxMax);
-                half probe0Volume = CalculateProbeVolumeSqrMagnitude(boxMin, boxMax);
+                // half probe0Volume = CalculateProbeVolumeSqrMagnitude(boxMin, boxMax);
                 half4 encodedIrradiance = half4(_Udon_CBIRP_ReflectionProbes.SampleLevel(sampler_Udon_CBIRP_ReflectionProbes, half4(reflectVectorBox, textureIndex), mip));
                 irradiance += weight * DecodeHDREnvironment(encodedIrradiance, decodeInstructions);
             }
 
         CBIRP_CLUSTER_END
+
+        UNITY_BRANCH
+        if (totalWeight < 0.99f)
+        {
+            half4 encodedIrradiance = half4(_Udon_CBIRP_SkyProbe.SampleLevel(sampler_Udon_CBIRP_ReflectionProbes, half3(reflectVector), mip));
+            irradiance += (1.0f - totalWeight) * encodedIrradiance;
+        }
 
         #ifdef _CBIRP_DEBUG
         return debug / 16.;

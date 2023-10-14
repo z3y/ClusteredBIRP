@@ -152,7 +152,7 @@ SamplerState sampler_BumpMap;
 Texture2D _MetallicGlossMap;
 SamplerState sampler_MetallicGlossMap;
 
-CBUFFER_START(UnityPerMaterial)
+// CBUFFER_START(UnityPerMaterial)
     float4 _MainTex_ST;
     half4 _Color;
     half _Roughness;
@@ -161,7 +161,7 @@ CBUFFER_START(UnityPerMaterial)
     half _BumpScale;
     half _GeometricSpecularAAVariance;
     half _GeometricSpecularAAThreshold;
-CBUFFER_END
+// CBUFFER_END
 
 Material InitializeMaterial(Varyings varyings)
 {

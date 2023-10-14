@@ -19,6 +19,8 @@ CODE_START
                     half4 shadowmask = 1;
                 #endif
 
+        giData.Light = 0;
+        giData.Specular = 0;
         CBIRP::ComputeLights(cullIndex, IN.positionWS, sd.normalWS, sd.viewDirectionWS, sd.f0, sd.NoV, sd.perceptualRoughness, shadowmask, giData.Light, giData.Specular);
         giData.Specular *= sd.energyCompensation;
 

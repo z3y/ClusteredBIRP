@@ -21,6 +21,7 @@ namespace z3y
         public CustomRenderTexture lightCull;
         public Texture2D shadowmask;
         public CubemapArray reflectionProbeArray;
+        public Cubemap skyProbe;
 
         // probes, assumed all static at runtime and always active
         const int _probesSize = 64;
@@ -175,6 +176,11 @@ namespace z3y
             VRCShader.SetGlobalVectorArray(VRCShader.PropertyToID("_Udon_CBIRP_Probe1"), _probe1);
             VRCShader.SetGlobalVectorArray(VRCShader.PropertyToID("_Udon_CBIRP_Probe2"), _probe2);
             VRCShader.SetGlobalVectorArray(VRCShader.PropertyToID("_Udon_CBIRP_Probe3"), _probe3);
+
+            if (skyProbe)
+            {
+                VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_SkyProbe"), skyProbe);
+            }
         }
 
     /*    public void SetCrtUniforms()
