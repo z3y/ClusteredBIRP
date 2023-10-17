@@ -13,7 +13,7 @@ using VRC;
 namespace z3y
 {
     [InitializeOnLoad, ExecuteInEditMode]
-    public class CBIRPManagerEditor : MonoBehaviour
+    public class CBIRPManagerEditor : MonoBehaviour, IActiveBuildTargetChanged
     {
         static CBIRPManagerEditor()
         {
@@ -30,6 +30,8 @@ namespace z3y
         private Vector4[] _probe3 = new Vector4[_probesSize];
 
         public List<CBIRPLight> _lights = new List<CBIRPLight>();
+
+        public int callbackOrder => 0;
 
         private void OnEnable()
         {
@@ -165,6 +167,16 @@ namespace z3y
         public void RemoveLight(CBIRPLight light)
         {
             _lights.Remove(light);
+        }
+
+        public void OnActiveBuildTargetChanged(BuildTarget previousTarget, BuildTarget newTarget)
+        {
+            // clear out packed texture arrays to not destroy performance on android
+            var probes = AssetDatabase.FindAssets("CBIRP_ProbeArray_");
+            foreach (var probe in probes)
+            {
+                AssetDatabase.DeleteAsset(AssetDatabase.GUIDToAssetPath(probe));
+            }
         }
     }
 

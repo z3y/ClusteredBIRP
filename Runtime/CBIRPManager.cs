@@ -1,7 +1,6 @@
 ﻿
 using System.IO;
 using UdonSharp;
-using UnityEditor;
 using UnityEngine;
 using VRC;
 using VRC.SDK3.Data;
@@ -10,6 +9,7 @@ using VRC.SDKBase;
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
 using UnityEngine.SceneManagement;
 using System.Linq;
+using UnityEditor;
 #endif
 
 namespace z3y
@@ -381,7 +381,7 @@ namespace z3y
             var scenePath = SceneManager.GetActiveScene().path;
             var sceneName = Path.GetFileNameWithoutExtension(scenePath);
             var sceneDirectory = Path.GetDirectoryName(scenePath);
-            var path = Path.Combine(sceneDirectory, "CBIRP_Probes_" + sceneName + ".asset");
+            var path = Path.Combine(sceneDirectory, "CBIRP_ProbeArray_" + sceneName + ".asset");
             AssetDatabase.CreateAsset(array, path);
             AssetDatabase.ImportAsset(path);
             var probes = AssetDatabase.LoadAssetAtPath<CubemapArray>(path);
