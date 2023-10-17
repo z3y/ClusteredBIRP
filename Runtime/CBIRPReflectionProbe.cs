@@ -44,15 +44,18 @@ namespace z3y
             CBIRPManagerEditor.instance.RemoveProbe(this);
         }
 
+        public void InitailizeData()
+        {
+            probe = GetComponent<ReflectionProbe>();
+        }
+
         public Vector4 GetData0()
         {
             var pos = probe.transform.position;
             bool boxProjection = probe.boxProjection;
-            return new Vector4(pos.x, pos.y, pos.z, boxProjection ? 1 : 0);
-        }
-        public void InitailizeData()
-        {
-            probe = GetComponent<ReflectionProbe>();
+            float intensity = probe.textureHDRDecodeValues.x;
+            intensity = boxProjection ? intensity :  -intensity;
+            return new Vector4(pos.x, pos.y, pos.z, intensity);
         }
 
         public Vector4 GetData1()

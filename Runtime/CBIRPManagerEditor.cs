@@ -84,7 +84,13 @@ namespace z3y
             manager._probe3 = _probe3;
             manager.InitializePropertyIDs();
 
+            if (manager._probe3.Length > 0)
+            {
+                manager._probeDecodeInstructions = manager._probe3[0];
+            }
+
             manager.UpdateProbeGlobals();
+
 
             manager.InitializeLightsCount(_lights.Count);
 
@@ -241,6 +247,11 @@ namespace z3y
                 CBIRPManagerEditor.CopyLightToManager(manager, l, i);
 
                 manager.ComputeLightUniforms(i);
+            }
+
+            if (manager._probe3.Length > 0)
+            {
+                manager._probeDecodeInstructions = manager._probe3[0];
             }
 
 

@@ -29,6 +29,7 @@ namespace z3y
         [SerializeField] internal Vector4[] _probe1 = new Vector4[_probesSize];
         [SerializeField] internal Vector4[] _probe2 = new Vector4[_probesSize];
         [SerializeField] internal Vector4[] _probe3 = new Vector4[_probesSize];
+        [SerializeField] internal Vector4 _probeDecodeInstructions = new Vector4();
 
         // lights
         const int _lightSize = 256;
@@ -176,6 +177,7 @@ namespace z3y
             VRCShader.SetGlobalVectorArray(VRCShader.PropertyToID("_Udon_CBIRP_Probe1"), _probe1);
             VRCShader.SetGlobalVectorArray(VRCShader.PropertyToID("_Udon_CBIRP_Probe2"), _probe2);
             VRCShader.SetGlobalVectorArray(VRCShader.PropertyToID("_Udon_CBIRP_Probe3"), _probe3);
+            VRCShader.SetGlobalVector(VRCShader.PropertyToID("_Udon_CBIRP_ProbeDecodeInstructions"), _probeDecodeInstructions);
 
             VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_SkyProbe"), skyProbe);
         }

@@ -238,26 +238,18 @@
                 [loop]
                 for (uint lightIndex = 0; lightIndex < 32 && packIndex < 4; lightIndex++)
                 {
-                    float4 data0 = _MainTex[uint2(lightIndex, 0 + CBIRP_UNIFORMS_PROBE_START)];
-                    float4 data1 = _MainTex[uint2(lightIndex, 1 + CBIRP_UNIFORMS_PROBE_START)];
-                    float4 data2 = _MainTex[uint2(lightIndex, 2 + CBIRP_UNIFORMS_PROBE_START)];
-                    float4 data3 = _MainTex[uint2(lightIndex, 3 + CBIRP_UNIFORMS_PROBE_START)];
-#ifdef CBIRP_GLOBAL_UNIFORMS
-data0 = _Udon_CBIRP_Probe0[lightIndex];
-data1 = _Udon_CBIRP_Probe1[lightIndex];
-data2 = _Udon_CBIRP_Probe2[lightIndex];
-data3 = _Udon_CBIRP_Probe3[lightIndex];
-#endif
 
-                    if (data0.x == 0)
+                    CBIRP::ReflectionProbe probe = CBIRP::ReflectionProbe::DecodeReflectionProbe(lightIndex);
+
+                    if (probe.intensity == 0)
                     {
                         break;
                     }
 
                     // UnpackFloat(data1, boxMin, boxMax);
-                    float4 probePosition = data0;
-                    float3 boxMin = data1.xyz;
-                    float3 boxMax = data2.xyz;
+                    float3 probePosition = probe.positionWS;
+                    float3 boxMin = probe.boxMin;
+                    float3 boxMax = probe.boxMax;
 
                     bool insideY = (CBIRP_PLAYER_POS.y + probePosition.y - boxMax.y) < CBIRP_CULL_FAR &&
                                    (CBIRP_PLAYER_POS.y - probePosition.y + boxMin.y) > -CBIRP_CULL_FAR ;

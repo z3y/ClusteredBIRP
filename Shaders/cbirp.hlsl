@@ -10,8 +10,6 @@ TextureCubeArray _Udon_CBIRP_ReflectionProbes;
 TextureCube _Udon_CBIRP_SkyProbe;
 SamplerState sampler_Udon_CBIRP_ReflectionProbes;
 Texture2D _Udon_CBIRP_ShadowMask;
-float4 _Udon_CBIRP_PlayerCamera;
-float _Udon_CBIRP_CullFar;
 
     // uint4 indices = _Udon_CBIRP_Culling[cullIndex]; \/ this was slower
 #define CBIRP_CLUSTER_START(cullIndex) \
@@ -36,6 +34,10 @@ float _Udon_CBIRP_CullFar;
 #define MAX_PROBES 64
 cbuffer CBIRP_Uniforms
 {
+    uniform float _Udon_CBIRP_CullFar;
+    uniform float4 _Udon_CBIRP_PlayerCamera;
+    uniform float4 _Udon_CBIRP_ProbeDecodeInstructions;
+
     uniform float4 _Udon_CBIRP_Light0[MAX_LIGHTS];
     uniform float4 _Udon_CBIRP_Light1[MAX_LIGHTS];
     uniform float4 _Udon_CBIRP_Light2[MAX_LIGHTS];
@@ -44,7 +46,6 @@ cbuffer CBIRP_Uniforms
     uniform float4 _Udon_CBIRP_Probe0[MAX_PROBES];
     uniform float4 _Udon_CBIRP_Probe1[MAX_PROBES];
     uniform float4 _Udon_CBIRP_Probe2[MAX_PROBES];
-    uniform float4 _Udon_CBIRP_Probe3[MAX_PROBES];
 };
 #endif
 
@@ -58,7 +59,7 @@ namespace CBIRP
         return (smoothFactor * smoothFactor) / max(distanceSquare, 1e-4);
     }
     
-    // custom
+    // modified attenuation up close, inv square falloff is too bright
     float GetSquareFalloffAttenuationCustom(float distanceSquare, float lightInvRadius2)
     {
         float factor = distanceSquare * lightInvRadius2;
@@ -120,6 +121,7 @@ namespace CBIRP
     {
         // data0
         float3 positionWS;
+        half intensity;
         bool boxProjection;
 
         // data 1
@@ -130,18 +132,19 @@ namespace CBIRP
         float3 boxMax;
         half blendDistance;
 
-        // data 3
-        half4 decodeInstructions;
-        half intensity;
-
         static ReflectionProbe DecodeReflectionProbe(uint index)
         {
             ReflectionProbe p = (ReflectionProbe)0;
             float4 data0 = _Udon_CBIRP_Probe0[index];
             float4 data1 = _Udon_CBIRP_Probe1[index];
-            // float4 data2 = _Udon_CBIRP_Probe2[index];
-            // float4 data3 = _Udon_CBIRP_Probe3[index];
+            float4 data2 = _Udon_CBIRP_Probe2[index];
             p.positionWS = data0.xyz;
+            p.intensity = abs(data0.w);
+            p.boxProjection = data0.w > 0.0;
+            p.arrayIndex = data1.w;
+            p.boxMin = data1.xyz;
+            p.boxMax = data2.xyz;
+            p.blendDistance = data2.w;
 
             return p;
         }
@@ -240,13 +243,10 @@ debug+=1;
         specular *= UNITY_PI;
     }
 
-    half3 BoxProjectedCubemapDirection(half3 reflectionWS, float3 positionWS, float4 cubemapPositionWS, float4 boxMin, float4 boxMax)
+    half3 BoxProjectedCubemapDirection(half3 reflectionWS, float3 positionWS, float3 cubemapPositionWS, float3 boxMin, float3 boxMax, bool boxProjection)
     {
-        #ifdef CBIRP_LOW
-            // return reflectionWS;
-        #endif
         UNITY_FLATTEN // most likely box always
-        if (cubemapPositionWS.w > 0.0f)
+        if (boxProjection)
         {
             float3 boxMinMax = (reflectionWS > 0.0f) ? boxMax.xyz : boxMin.xyz;
             half3 rbMinMax = half3(boxMinMax - positionWS) / reflectionWS;
@@ -276,9 +276,8 @@ debug+=1;
         return PerceptualRoughnessToMipmapLevel(perceptualRoughness, UNITY_SPECCUBE_LOD_STEPS);
     }
 
-    float CalculateProbeWeight(float3 positionWS, float4 probeBoxMin, float4 probeBoxMax)
+    float CalculateProbeWeight(float3 positionWS, float3 probeBoxMin, float3 probeBoxMax, float blendDistance)
     {
-        float blendDistance = probeBoxMax.w;
         float3 weightDir = min(positionWS - probeBoxMin.xyz, probeBoxMax.xyz - positionWS) / blendDistance;
         return saturate(min(weightDir.x, min(weightDir.y, weightDir.z)));
     }
@@ -314,29 +313,14 @@ debug+=1;
         half3 irradiance = 0;
         float totalWeight = 0;
 
+        half4 decodeInstructions = _Udon_CBIRP_ProbeDecodeInstructions;
+
         cullIndex.y += CBIRP_CULLING_SIZE.y / 2;
         CBIRP_CLUSTER_START(cullIndex)
+            ReflectionProbe probe = ReflectionProbe::DecodeReflectionProbe(index);
             debug += 1;
 
-            #ifndef CBIRP_GLOBAL_UNIFORMS
-            float4 data0 = _UdonLightUniforms[uint2(index, 0 + CBIRP_UNIFORMS_PROBE_START)];
-            float4 data1 = _UdonLightUniforms[uint2(index, 1 + CBIRP_UNIFORMS_PROBE_START)];
-            float4 data2 = _UdonLightUniforms[uint2(index, 2 + CBIRP_UNIFORMS_PROBE_START)];
-            float4 data3 = _UdonLightUniforms[uint2(index, 3 + CBIRP_UNIFORMS_PROBE_START)];
-            #else
-            float4 data0 = _Udon_CBIRP_Probe0[index];
-            float4 data1 = _Udon_CBIRP_Probe1[index];
-            float4 data2 = _Udon_CBIRP_Probe2[index];
-            float4 data3 = _Udon_CBIRP_Probe3[index];
-            #endif
-
-            float4 probePosition = data0;
-            float4 boxMin = data1;
-            float4 boxMax = data2;
-            float4 decodeInstructions = data3;
-            half textureIndex = data1.w;
-
-            float weight = CalculateProbeWeight(positionWS, boxMin, boxMax);
+            float weight = CalculateProbeWeight(positionWS, probe.boxMin, probe.boxMax, probe.blendDistance);
 
             UNITY_BRANCH
             if (weight > 0.0)
@@ -344,10 +328,9 @@ debug+=1;
                 weight = min(weight, 1.0 - totalWeight);
                 totalWeight += weight;
 
-                half3 reflectVectorBox = BoxProjectedCubemapDirection(reflectVector, positionWS, probePosition, boxMin, boxMax);
-                // half probe0Volume = CalculateProbeVolumeSqrMagnitude(boxMin, boxMax);
-                half4 encodedIrradiance = half4(_Udon_CBIRP_ReflectionProbes.SampleLevel(sampler_Udon_CBIRP_ReflectionProbes, half4(reflectVectorBox, textureIndex), mip));
-                irradiance += weight * DecodeHDREnvironment(encodedIrradiance, decodeInstructions);
+                half3 reflectVectorBox = BoxProjectedCubemapDirection(reflectVector, positionWS, probe.positionWS, probe.boxMin, probe.boxMax, probe.boxProjection);
+                half4 encodedIrradiance = half4(_Udon_CBIRP_ReflectionProbes.SampleLevel(sampler_Udon_CBIRP_ReflectionProbes, half4(reflectVectorBox, probe.arrayIndex), mip));
+                irradiance += weight * DecodeHDREnvironment(encodedIrradiance, half4(probe.intensity, decodeInstructions.yzw));
             }
 
         CBIRP_CLUSTER_END
