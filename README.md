@@ -28,3 +28,14 @@ Clustered lighting for the Unity Built-In Pipeline in VRChat.
 - Swap shaders to a supported shader (a standard shader example included CBRIP/Standard)
 - Drag in the manager prefab in the scene
 - Drag in lights and reflection probe prefabs
+
+# Preview
+
+Inner/Outer angles:
+
+https://github.com/z3y/ClusteredBIRP/assets/33181641/aa49040a-c6c6-41b4-950c-584262275196
+
+
+Shadowmask:
+
+https://github.com/z3y/ClusteredBIRP/assets/33181641/a2084640-7297-4b2b-a3d4-9c109f50af26
