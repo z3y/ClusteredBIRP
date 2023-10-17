@@ -12,7 +12,7 @@ namespace z3y
         [HideInInspector] public Vector4 unity_SpecCube0_BoxMin;
         [HideInInspector] public Vector4 unity_SpecCube0_BoxMax;
         [HideInInspector] public Vector4 unity_SpecCube0_HDR;
-        public float blendDistance;
+        public float blendDistance = 0.1f;
 
         [HideInInspector] public int cubeArrayIndex = 0;
 
