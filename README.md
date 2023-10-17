@@ -36,12 +36,12 @@ Clustered lighting for the Unity Built-In Pipeline in VRChat.
 
 Inner/Outer angles:
 
-https://github.com/z3y/ClusteredBIRP/assets/33181641/aa49040a-c6c6-41b4-950c-584262275196
+https://github.com/z3y/ClusteredBIRP/assets/33181641/dd173fa9-3cb5-4cb0-95b5-0e70bc537600
 
 
 Shadowmask:
 
-https://github.com/z3y/ClusteredBIRP/assets/33181641/a2084640-7297-4b2b-a3d4-9c109f50af26
+https://github.com/z3y/ClusteredBIRP/assets/33181641/2d36d35d-388d-47d3-9539-d0375d7b4bdb
 
 
 Demo World:
