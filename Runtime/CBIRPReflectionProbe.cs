@@ -1,6 +1,4 @@
 ﻿#if !COMPILER_UDONSHARP && UNITY_EDITOR
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace z3y
@@ -14,7 +12,7 @@ namespace z3y
         [HideInInspector] public Vector4 unity_SpecCube0_BoxMin;
         [HideInInspector] public Vector4 unity_SpecCube0_BoxMax;
         [HideInInspector] public Vector4 unity_SpecCube0_HDR;
-
+        public float blendDistance;
 
         [HideInInspector] public int cubeArrayIndex = 0;
 
@@ -26,9 +24,7 @@ namespace z3y
             {
                 return;
             }
-
             Destroy(this);
-
         }
 
         private void OnEnable()
@@ -44,9 +40,16 @@ namespace z3y
             CBIRPManagerEditor.instance.RemoveProbe(this);
         }
 
+        private void OnValidate()
+        {
+            if (!probe) return;
+            probe.blendDistance = blendDistance;
+        }
+
         public void InitailizeData()
         {
             probe = GetComponent<ReflectionProbe>();
+            blendDistance = probe.blendDistance;
         }
 
         public Vector4 GetData0()
