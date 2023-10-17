@@ -30,6 +30,7 @@ Clustered lighting for the Unity Built-In Pipeline in VRChat.
 - Swap shaders to a supported shader (a standard shader example included CBRIP/Standard - Mono SH enabled by default)
 - Drag in the manager prefab in the scene
 - Drag in lights and reflection probe prefabs
+- After baking reflection probes, or switching the build target, press pack probes to pack them into a texture array
 
 # Preview
 
