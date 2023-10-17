@@ -309,7 +309,7 @@ ENDHLSL
                 #else
                     diffuse += ShadeSHPerPixel(normalWS,  0, positionWS);
                 #endif
-                                
+                
                 #ifdef LIGHTMAP_ON
                     half4 shadowmask = _Udon_CBIRP_ShadowMask.SampleLevel(custom_bilinear_clamp_sampler, lightmapUV, 0);
                 #else
@@ -369,9 +369,6 @@ ENDHLSL
 
                 // Material m = InitializeMaterial(varyings);
                 //half4 color = half4(m.albedo, m.alpha);
-
-
-                // return 0;
             }
             ENDHLSL
         }

@@ -157,8 +157,7 @@ namespace CBIRP
 
     uint2 CullIndex(float3 positionWS)
     {
-        float voxel_size = CBIRP_VOXELS_SIZE;
-        uint3 grid = uint3(((positionWS - CBIRP_PLAYER_POS) + CBIRP_CULL_FAR) / voxel_size);
+        uint3 grid = uint3(((positionWS - CBIRP_PLAYER_POS) + CBIRP_CULL_FAR) / float(CBIRP_VOXELS_SIZE));
         #ifdef CBIRP_ASSUME_NO_Y
             uint2 index_2d = uint2(grid.x, grid.z);
         #else
@@ -194,9 +193,8 @@ debug+=1;
                 {
                     attenuation *= GetSpotAngleAttenuation(light.direction, L, light.spotScale, light.spotOffset);
                 }
-                // float cd = dot(-light.direction, L);
-        // float attenuations = saturate(cd - 0.2);
-            debug+=attenuation > 0;
+
+                debug+=attenuation > 0;
 
                 #ifdef LIGHTMAP_ON
                 if (light.shadowmask)
@@ -218,11 +216,7 @@ debug+=1;
                         currentDiffuse *= burley;
                     #endif
 
-                    #ifdef LIGHTMAP_ON
-                        diffuse += currentDiffuse * !light.specularOnly;
-                    #else
-                        diffuse += currentDiffuse;
-                    #endif
+                    diffuse += currentDiffuse * !light.specularOnly;
 
                     #ifndef _SPECULARHIGHLIGHTS_OFF
                         half vNoH = saturate(dot(normalWS, halfVector));
