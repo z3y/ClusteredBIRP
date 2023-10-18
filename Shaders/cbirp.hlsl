@@ -30,22 +30,20 @@ Texture2D _Udon_CBIRP_ShadowMask;
 
 
 #ifdef CBIRP_GLOBAL_UNIFORMS
-#define MAX_LIGHTS 128
-#define MAX_PROBES 64
 cbuffer CBIRP_Uniforms
 {
     uniform float _Udon_CBIRP_CullFar;
     uniform float4 _Udon_CBIRP_PlayerCamera;
     uniform float4 _Udon_CBIRP_ProbeDecodeInstructions;
 
-    uniform float4 _Udon_CBIRP_Light0[MAX_LIGHTS];
-    uniform float4 _Udon_CBIRP_Light1[MAX_LIGHTS];
-    uniform float4 _Udon_CBIRP_Light2[MAX_LIGHTS];
-    uniform float4 _Udon_CBIRP_Light3[MAX_LIGHTS];
+    uniform float4 _Udon_CBIRP_Light0[CBIRP_MAX_LIGHTS];
+    uniform float4 _Udon_CBIRP_Light1[CBIRP_MAX_LIGHTS];
+    uniform float4 _Udon_CBIRP_Light2[CBIRP_MAX_LIGHTS];
+    uniform float4 _Udon_CBIRP_Light3[CBIRP_MAX_LIGHTS];
 
-    uniform float4 _Udon_CBIRP_Probe0[MAX_PROBES];
-    uniform float4 _Udon_CBIRP_Probe1[MAX_PROBES];
-    uniform float4 _Udon_CBIRP_Probe2[MAX_PROBES];
+    uniform float4 _Udon_CBIRP_Probe0[CBIRP_MAX_PROBES];
+    uniform float4 _Udon_CBIRP_Probe1[CBIRP_MAX_PROBES];
+    uniform float4 _Udon_CBIRP_Probe2[CBIRP_MAX_PROBES];
 };
 #endif
 

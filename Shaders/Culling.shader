@@ -79,7 +79,7 @@
                 uint packShift = 0;
 
                 [loop]
-                for (uint lightIndex = 0; lightIndex < 256 && packIndex < 4; lightIndex++)
+                for (uint lightIndex = 0; lightIndex < CBIRP_MAX_LIGHTS && packIndex < 4; lightIndex++)
                 {
                     float4 lightData0 = _MainTex[uint2(lightIndex, 0)];
 
@@ -236,7 +236,7 @@
                 uint packShift = 0;
 
                 [loop]
-                for (uint lightIndex = 0; lightIndex < 32 && packIndex < 4; lightIndex++)
+                for (uint lightIndex = 0; lightIndex < CBIRP_MAX_PROBES && packIndex < 4; lightIndex++)
                 {
 
                     CBIRP::ReflectionProbe probe = CBIRP::ReflectionProbe::DecodeReflectionProbe(lightIndex);
