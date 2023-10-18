@@ -1,0 +1,2 @@
+#define CBIRP_MAX_LIGHTS 128
+#define CBIRP_MAX_PROBES 64

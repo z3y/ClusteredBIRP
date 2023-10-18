@@ -19,7 +19,10 @@ namespace z3y
         void Start()
         {
             InitailizeData();
-            CBIRPManagerEditor.instance.AddProbe(this);
+            if (gameObject.activeInHierarchy)
+            {
+                CBIRPManagerEditor.instance.AddProbe(this);
+            }
             if (!Application.isPlaying)
             {
                 return;
@@ -29,9 +32,9 @@ namespace z3y
 
         private void OnEnable()
         {
-            if (CBIRPManagerEditor.instance)
+            if (gameObject.activeInHierarchy)
             {
-                Start();
+                CBIRPManagerEditor.instance.AddProbe(this);
             }
         }
 

@@ -195,7 +195,6 @@ debug+=1;
                     attenuation *= GetSpotAngleAttenuation(light.direction, L, light.spotScale, light.spotOffset);
                 }
 
-                debug+=attenuation > 0;
 
                 #ifdef LIGHTMAP_ON
                 if (light.shadowmask)
@@ -203,6 +202,8 @@ debug+=1;
                     attenuation *= shadowmask[light.shadowmaskID];
                 }
                 #endif
+
+                debug += attenuation > 0;
 
                 UNITY_BRANCH
                 if (attenuation > 0 && NoL > 0)

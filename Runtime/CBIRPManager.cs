@@ -173,11 +173,15 @@ namespace z3y
 
         public void UpdateProbeGlobals()
         {
-            VRCShader.SetGlobalVectorArray(VRCShader.PropertyToID("_Udon_CBIRP_Probe0"), _probe0);
-            VRCShader.SetGlobalVectorArray(VRCShader.PropertyToID("_Udon_CBIRP_Probe1"), _probe1);
-            VRCShader.SetGlobalVectorArray(VRCShader.PropertyToID("_Udon_CBIRP_Probe2"), _probe2);
-            VRCShader.SetGlobalVectorArray(VRCShader.PropertyToID("_Udon_CBIRP_Probe3"), _probe3);
-            VRCShader.SetGlobalVector(VRCShader.PropertyToID("_Udon_CBIRP_ProbeDecodeInstructions"), _probeDecodeInstructions);
+            if (_probe0.Length > 1)
+            {
+                VRCShader.SetGlobalVectorArray(VRCShader.PropertyToID("_Udon_CBIRP_Probe0"), _probe0);
+                VRCShader.SetGlobalVectorArray(VRCShader.PropertyToID("_Udon_CBIRP_Probe1"), _probe1);
+                VRCShader.SetGlobalVectorArray(VRCShader.PropertyToID("_Udon_CBIRP_Probe2"), _probe2);
+                VRCShader.SetGlobalVectorArray(VRCShader.PropertyToID("_Udon_CBIRP_Probe3"), _probe3);
+                VRCShader.SetGlobalVector(VRCShader.PropertyToID("_Udon_CBIRP_ProbeDecodeInstructions"), _probeDecodeInstructions);
+            }
+
 
             VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_SkyProbe"), skyProbe);
         }
@@ -310,6 +314,25 @@ namespace z3y
         }
 
 
+        public int GetLightsCount ()
+        {
+            return _lightTransforms.Length;
+        }
+
+        public int GetProbesCount()
+        {
+            int count = 0;
+            foreach (var p in _probe0)
+            {
+                if (p.w == 0)
+                {
+                    break;
+                }
+                count++;
+            }
+
+            return count;
+        }
 
 
         public void SetGlobalUniforms()

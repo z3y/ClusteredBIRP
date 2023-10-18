@@ -74,7 +74,7 @@ namespace z3y
 
         private void OnDestroy()
         {
-            CBIRPManagerEditor.instance.AddLight(this);
+            CBIRPManagerEditor.instance.RemoveLight(this);
         }
         /*
                 public Vector4 GetData0() => new Vector4(color.r, color.g, color.b, intensity);

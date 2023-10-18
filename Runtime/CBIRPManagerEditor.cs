@@ -1,14 +1,15 @@
 ﻿#if !COMPILER_UDONSHARP && UNITY_EDITOR
-using System.Collections;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 using UnityEngine.SceneManagement;
-using VRC;
+using VRC.SDK3.Components;
+using VRC.SDK3.Editor;
 
 namespace z3y
 {
@@ -18,6 +19,52 @@ namespace z3y
         static CBIRPManagerEditor()
         {
             EditorApplication.update += StaticUpdate;
+            VRCSdkControlPanel.OnSdkPanelEnable += AddBuildHook;
+        }
+
+        private static void AddBuildHook(object sender, EventArgs e)
+        {
+            if (VRCSdkControlPanel.TryGetBuilder<IVRCSdkWorldBuilderApi>(out var builder))
+            {
+                builder.OnSdkBuildStart += OnBuildStarted;
+                builder.OnSdkBuildFinish += OnBuildFinish;
+            }
+        }
+        const string maxCountHlslPath = "Packages/z3y.clusteredbirp/Shaders/ConstantsMax.hlsl";
+        private static void OnBuildStarted(object sender, object target)
+        {
+            var scene = SceneManager.GetActiveScene();
+            var rootGameObjects = scene.GetRootGameObjects();
+
+            CBIRPManager manager = null;
+
+
+            foreach (var gameObject in rootGameObjects)
+            {
+                if (manager == null)
+                {
+                    manager = gameObject.GetComponentInChildren<CBIRPManager>(true);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            var probesCount = manager.GetProbesCount();
+            var lightsCount = manager.GetLightsCount();
+
+            string code = $"#define CBIRP_MAX_LIGHTS {lightsCount + 1}" + Environment.NewLine + $"#define CBIRP_MAX_PROBES {probesCount + 1}";
+
+            File.WriteAllText(maxCountHlslPath, code);
+            AssetDatabase.ImportAsset(maxCountHlslPath);
+        }
+        private static void OnBuildFinish(object sender, object target)
+        {
+            string code = $"#define CBIRP_MAX_LIGHTS 128" + Environment.NewLine + "#define CBIRP_MAX_PROBES 64";
+
+            File.WriteAllText(maxCountHlslPath, code);
+            AssetDatabase.ImportAsset(maxCountHlslPath);
         }
 
         public CBIRPManager manager;
@@ -63,15 +110,11 @@ namespace z3y
             manager.SetGlobalUniforms();
 
             Shader.SetGlobalVector("_Udon_CBIRP_PlayerCamera", SceneView.lastActiveSceneView.camera.transform.position);
+            _probes = _probes.Where(x => x != null && x.transform && x.gameObject.activeInHierarchy).ToList();
+            InitializeArrays();
             for (int i = 0; i < _probes.Count; i++)
             {
                 CBIRPReflectionProbe probe = _probes[i];
-                if (probe == null || !probe.transform || !probe.gameObject.activeInHierarchy)
-                {
-                    _probes.RemoveAt(i);
-                    InitializeArrays();
-                    return;
-                }
 
                 _probe0[i] = probe.GetData0();
                 _probe1[i] = probe.GetData1();
@@ -142,16 +185,18 @@ namespace z3y
 
         public void AddProbe(CBIRPReflectionProbe probe)
         {
+            if (_probes.Contains(probe)) return;
+
             //Debug.Log("Registed probe " + probe.gameObject.name);
             _probes.Add(probe);
             InitializeArrays();
         }
         private void InitializeArrays()
         {
-            _probe0 = new Vector4[_probesSize];
-            _probe1 = new Vector4[_probesSize];
-            _probe2 = new Vector4[_probesSize];
-            _probe3 = new Vector4[_probesSize];
+            _probe0 = new Vector4[64];
+            _probe1 = new Vector4[64];
+            _probe2 = new Vector4[64];
+            _probe3 = new Vector4[64];
         }
         public void RemoveProbe(CBIRPReflectionProbe probe)
         {
@@ -197,7 +242,7 @@ namespace z3y
 
             foreach (var gameObject in rootGameObjects)
             {
-                var instance = gameObject.GetComponentsInChildren<CBIRPReflectionProbe>(false);
+                var instance = gameObject.GetComponentsInChildren<CBIRPReflectionProbe>(true);
 
                 if (managere == null)
                 {
@@ -233,11 +278,16 @@ namespace z3y
                 instancesProbes[i].InitailizeData();
             }
 
-            instancesProbes = CBIRPManagerEditor.SortProbesByImportance(instancesProbes);
+            var activeProbes = instancesProbes.Where(x => x.gameObject.activeInHierarchy).ToList();
+            activeProbes = CBIRPManagerEditor.SortProbesByImportance(activeProbes);
+            manager._probe0 = new Vector4[activeProbes.Count];
+            manager._probe1 = new Vector4[activeProbes.Count];
+            manager._probe2 = new Vector4[activeProbes.Count];
+            manager._probe3 = new Vector4[activeProbes.Count];
 
-            for (int i = 0; i < instancesProbes.Count; i++)
+            for (int i = 0; i < activeProbes.Count; i++)
             {
-                CBIRPReflectionProbe probe = instancesProbes[i];
+                CBIRPReflectionProbe probe = activeProbes[i];
                 manager._probe0[i] = probe.GetData0();
                 manager._probe1[i] = probe.GetData1();
                 manager._probe2[i] = probe.GetData2();

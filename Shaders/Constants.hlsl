@@ -1,8 +1,7 @@
 // #define DEBUG_LIGHT_BRANCH
 // #define DEBUG_PROBE_BRANCH
 
-#define CBIRP_MAX_LIGHTS 128
-#define CBIRP_MAX_PROBES 64
+#include "ConstantsMax.hlsl"
 
 #define CBIRP_CULL_FAR _Udon_CBIRP_CullFar
 // #define CBIRP_CULL_FAR _ProjectionParams.z
