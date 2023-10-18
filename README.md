@@ -1,5 +1,5 @@
 # Clustered BIRP
-Clustered lighting for the Unity Built-In Pipeline in VRChat.
+Experimental clustered lighting for the Unity Built-In Pipeline in VRChat.
 
 ## Features
 
