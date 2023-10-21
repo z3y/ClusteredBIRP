@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: CBIRP_Culling
+  m_Name: CBIRP_Clustering
   m_Shader: {fileID: 4800000, guid: 48b5db1288684164ca6dc5f88ba41f63, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4

@@ -21,6 +21,7 @@ namespace z3y
         public CustomRenderTexture lightCull;
         public Texture2D shadowmask;
         public CubemapArray reflectionProbeArray;
+        [HideInInspector] // disabled for now
         public Cubemap skyProbe;
 
         // probes, assumed all static at runtime and always active

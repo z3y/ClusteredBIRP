@@ -32,7 +32,7 @@ namespace z3y
 
         private void OnEnable()
         {
-            if (gameObject.activeInHierarchy)
+            if (gameObject.activeInHierarchy && CBIRPManagerEditor.instance)
             {
                 CBIRPManagerEditor.instance.AddProbe(this);
             }

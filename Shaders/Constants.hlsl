@@ -1,13 +1,14 @@
 // #define DEBUG_LIGHT_BRANCH
 // #define DEBUG_PROBE_BRANCH
 
-#include "ConstantsMax.hlsl"
 
 #define CBIRP_CULL_FAR _Udon_CBIRP_CullFar
 // #define CBIRP_CULL_FAR _ProjectionParams.z
 // #define CBIRP_CULL_FAR 100
 // #define CBIRP_PLAYER_POS _WorldSpaceCameraPos.xyz
 #define CBIRP_PLAYER_POS _Udon_CBIRP_PlayerCamera.xyz
+
+#include "ConstantsGenerated.hlsl"
 
 #define CBIRP_CULLING_SIZE uint2(2048, 128)
 #define CBIRP_VOXELS_COUNT ((CBIRP_CULLING_SIZE.y / 2 / 2) - 1)

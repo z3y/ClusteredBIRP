@@ -30,7 +30,7 @@ namespace z3y
                 builder.OnSdkBuildFinish += OnBuildFinish;
             }
         }
-        const string maxCountHlslPath = "Packages/z3y.clusteredbirp/Shaders/ConstantsMax.hlsl";
+        const string constantsGeneratedHlslPath = "Packages/z3y.clusteredbirp/Shaders/ConstantsGenerated.hlsl";
         private static void OnBuildStarted(object sender, object target)
         {
             var scene = SceneManager.GetActiveScene();
@@ -56,15 +56,15 @@ namespace z3y
 
             string code = $"#define CBIRP_MAX_LIGHTS {lightsCount + 1}" + Environment.NewLine + $"#define CBIRP_MAX_PROBES {probesCount + 1}";
 
-            File.WriteAllText(maxCountHlslPath, code);
-            AssetDatabase.ImportAsset(maxCountHlslPath);
+            File.WriteAllText(constantsGeneratedHlslPath, code);
+            AssetDatabase.ImportAsset(constantsGeneratedHlslPath);
         }
         private static void OnBuildFinish(object sender, object target)
         {
             string code = $"#define CBIRP_MAX_LIGHTS 128" + Environment.NewLine + "#define CBIRP_MAX_PROBES 64";
 
-            File.WriteAllText(maxCountHlslPath, code);
-            AssetDatabase.ImportAsset(maxCountHlslPath);
+            File.WriteAllText(constantsGeneratedHlslPath, code);
+            AssetDatabase.ImportAsset(constantsGeneratedHlslPath);
         }
 
         public CBIRPManager manager;

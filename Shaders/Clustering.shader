@@ -1,4 +1,4 @@
-﻿Shader "CBIRP/Internal/Culling"
+﻿Shader "CBIRP/Internal/Clustering"
 {
     Properties
     {
