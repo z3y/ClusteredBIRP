@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: CBIRP_Clustering
-  m_Shader: {fileID: 4800000, guid: 48b5db1288684164ca6dc5f88ba41f63, type: 3}
+  m_Name: Debug Clustering
+  m_Shader: {fileID: 4800000, guid: 220eebd061d5f91448ab888b7d6b5771, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -20,11 +20,11 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _MainTex:
-        m_Texture: {fileID: 8400000, guid: c95dd3e3ee5ab7f4e8dc17bd59c4fb39, type: 2}
+        m_Texture: {fileID: 8600000, guid: d81d6aa0aa098cf41a9aa549d3913657, type: 2}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Udon_CBIRP_Uniforms:
-        m_Texture: {fileID: 8600000, guid: 2f0d588e7ddaa0e4db6e999fe9b6c088, type: 2}
+        m_Texture: {fileID: 8400000, guid: d1f08a0734147dc48987e9b6aa0955b7, type: 2}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats: []

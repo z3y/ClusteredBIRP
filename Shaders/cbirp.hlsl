@@ -1,16 +1,16 @@
 #ifndef CBIRP_INCLUDED
 #define CBIRP_INCLUDED
 
-#include "Constants.hlsl"
-#include "Filament.hlsl"
-#include "Packing.hlsl"
-
 Texture2D<float4> _Udon_CBIRP_Uniforms;
 Texture2D<uint4> _Udon_CBIRP_Culling;
 TextureCubeArray _Udon_CBIRP_ReflectionProbes;
 TextureCube _Udon_CBIRP_SkyProbe;
 SamplerState sampler_Udon_CBIRP_ReflectionProbes;
 Texture2D _Udon_CBIRP_ShadowMask;
+
+#include "Constants.hlsl"
+#include "Filament.hlsl"
+#include "Packing.hlsl"
 
     // uint4 indices = _Udon_CBIRP_Culling[clusterIndex]; \/ this was slower
 #define CBIRP_CLUSTER_START(clusterIndex) \

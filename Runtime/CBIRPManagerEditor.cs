@@ -34,14 +34,14 @@ namespace CBIRP
             // thx error mdl
             // https://github.com/Error-mdl/UnityReflectionProbeArrays/blob/master/ReflectionProbeArray/editor/ReflectionProbeArrayCreator.cs
 
-            var fbreflectionProbes = GameObject.FindObjectsOfType<CBIRPReflectionProbe>();
+            var probeInstances = GameObject.FindObjectsOfType<CBIRPReflectionProbe>();
 
-            if (fbreflectionProbes.Length == 0)
+            if (probeInstances.Length == 0)
             {
                 return;
             }
 
-            var reflectionProbes = fbreflectionProbes.Select(x => x.GetComponent<ReflectionProbe>()).ToArray();
+            var reflectionProbes = probeInstances.Select(x => x.GetComponent<ReflectionProbe>()).ToArray();
 
             var referenceProbe = reflectionProbes[0].texture as Cubemap;
             var array = new CubemapArray(referenceProbe.width, reflectionProbes.Length, referenceProbe.format, true);
