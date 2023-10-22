@@ -41,10 +41,10 @@ Cull Off
             }
 
             UNITY_INSTANCING_BUFFER_START(Props)
-                UNITY_DEFINE_INSTANCED_PROP(float4, _Property0)
-                UNITY_DEFINE_INSTANCED_PROP(float4, _Property1)
-                UNITY_DEFINE_INSTANCED_PROP(float4, _Property2)
-                UNITY_DEFINE_INSTANCED_PROP(float4, _Property3)
+                UNITY_DEFINE_INSTANCED_PROP(float4, _Data0)
+                UNITY_DEFINE_INSTANCED_PROP(float4, _Data1)
+                UNITY_DEFINE_INSTANCED_PROP(float4, _Data2)
+                UNITY_DEFINE_INSTANCED_PROP(float4, _Data3)
             UNITY_INSTANCING_BUFFER_END(Props)
 
             struct appdata
@@ -132,10 +132,10 @@ Cull Off
                 uint index = 0;
                 #endif
 
-                float4 prop0 = UNITY_ACCESS_INSTANCED_PROP(Props, _Property0);
-                float4 prop1 = UNITY_ACCESS_INSTANCED_PROP(Props, _Property1);
-                float4 prop2 = UNITY_ACCESS_INSTANCED_PROP(Props, _Property2);
-                float4 prop3 = UNITY_ACCESS_INSTANCED_PROP(Props, _Property3);
+                float4 prop0 = UNITY_ACCESS_INSTANCED_PROP(Props, _Data0);
+                float4 prop1 = UNITY_ACCESS_INSTANCED_PROP(Props, _Data1);
+                float4 prop2 = UNITY_ACCESS_INSTANCED_PROP(Props, _Data2);
+                float4 prop3 = UNITY_ACCESS_INSTANCED_PROP(Props, _Data3);
 
                 float2 uv = i.uv.xy;
                 uint writeIndex = uv.y * CBIRP_UNIFORMS_SIZE.y * 0.5;
@@ -143,7 +143,6 @@ Cull Off
                 #ifdef _REFLECTION_PROBE
                 if (writeIndex == 0)
                 {
-                    // float3 probePositionWS = float3(-25.11, 1.33, -2.86);
                     return float4(i.transformPosition.xyz, prop0.w);
                 }
                 if (writeIndex == 1)
@@ -160,13 +159,11 @@ Cull Off
                 }
                 #else // LIGHTS
                     half range = prop1.x;
-                    range = 25;
-                    half innerAngle = prop1.g;
+                    half innerAnglePercent = prop1.g;
                     half outerAngle = prop1.b;
                     bool isSpot = prop1.a > 0;
 
                     float3 color = prop0.rgb;
-                    color = 1;
                     float intensity = prop0.a;
 
                     half flickerSpeed = prop2.y;
@@ -188,7 +185,7 @@ Cull Off
                     UNITY_BRANCH
                     if (isSpot)
                     {
-                        innerAngle = min(innerAngle, outerAngle - 1);
+                        half innerAngle = outerAngle / 100 * innerAnglePercent;
                         innerAngle = innerAngle / 360 * UNITY_PI;
                         outerAngle = outerAngle / 360 * UNITY_PI;
                         float cosOuter = cos(outerAngle);
@@ -203,7 +200,7 @@ Cull Off
                             lightPosition.z += sin((_Time.x  + (index * .02))  * 50);
                         #endif
 
-                        float rangeScaled = (1.0 / range) * (1.0 / range);
+                        float rangeScaled = range * range;
                         if (isSpot) rangeScaled = -rangeScaled;
                         return float4(lightPosition, rangeScaled);
                     }

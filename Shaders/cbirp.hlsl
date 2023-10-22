@@ -31,20 +31,6 @@ uniform float _Udon_CBIRP_CullFar;
 uniform float4 _Udon_CBIRP_PlayerCamera;
 uniform float4 _Udon_CBIRP_ProbeDecodeInstructions;
 
-// #ifdef CBIRP_GLOBAL_UNIFORMS
-// cbuffer CBIRP_Uniforms
-// {
-//     uniform float4 _Udon_CBIRP_Light0[CBIRP_MAX_LIGHTS];
-//     uniform float4 _Udon_CBIRP_Light1[CBIRP_MAX_LIGHTS];
-//     uniform float4 _Udon_CBIRP_Light2[CBIRP_MAX_LIGHTS];
-//     uniform float4 _Udon_CBIRP_Light3[CBIRP_MAX_LIGHTS];
-
-//     uniform float4 _Udon_CBIRP_Probe0[CBIRP_MAX_PROBES];
-//     uniform float4 _Udon_CBIRP_Probe1[CBIRP_MAX_PROBES];
-//     uniform float4 _Udon_CBIRP_Probe2[CBIRP_MAX_PROBES];
-// };
-// #endif
-
 namespace CBIRP
 {
     // from filament
@@ -94,12 +80,10 @@ namespace CBIRP
         {
             Light l = (Light)0;
             float4 data0 = _Udon_CBIRP_Uniforms[uint2(index, 0)];
-            data0.y += _Udon_CBIRP_Uniforms[uint2(index, 1)] * 0.01;
-            // data0.y += _Udon_CBIRP_Uniforms[uint2(index, 2)] * 0.01;
-            // data0.y += _Udon_CBIRP_Uniforms[uint2(index, 3)] * 0.01;
-            // data0.y += _Udon_CBIRP_Uniforms[uint2(index, 4)] * 0.01;
-            // data0.y += _Udon_CBIRP_Uniforms[uint2(index, 5)] * 0.01;
-            // data0.y += _Udon_CBIRP_Uniforms[uint2(index, 6)] * 0.01;
+            float4 data1 = _Udon_CBIRP_Uniforms[uint2(index, 1)];
+            float4 data2 = _Udon_CBIRP_Uniforms[uint2(index, 2)];
+            float4 data3 = _Udon_CBIRP_Uniforms[uint2(index, 3)];
+
             // float4 data0 = _Udon_CBIRP_Light0[index];
             // float4 data1 = _Udon_CBIRP_Light1[index];
             // float4 data2 = _Udon_CBIRP_Light2[index];
@@ -116,13 +100,12 @@ namespace CBIRP
             // l.spotOffset = data3.y;
             // l.specularOnly = data3.z;
 
-
             l.enabled = data0.w != 0;
             l.positionWS = data0.xyz;
-            l.range = 25;
+            l.range = data0.w;
             l.spot = false;
             l.direction = 0;
-            l.color = float3(533,4,2);
+            l.color = data1.xyz;
             l.shadowmaskID = -1;
             l.shadowmask = false;
             l.spotScale = 0;
