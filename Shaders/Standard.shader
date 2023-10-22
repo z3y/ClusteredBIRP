@@ -26,6 +26,9 @@
         [PowerSlider(2)] _GeometricSpecularAAThreshold ("GSAA Threshold", Range(0.0, 1.0)) = 0.1
         [HideInInspector] [NonModifiableTextureData] [NoScaleOffset]_DFG ("DFG", 2D) = "white" {}
 
+        [HideInInspector] [NonModifiableTextureData] [NoScaleOffset] _Udon_CBIRP_Uniforms ("Uniforms", 2D) = "black" {}
+        [HideInInspector] [NonModifiableTextureData] [NoScaleOffset] _Udon_CBIRP_Culling ("Clustering", 2D) = "black" {}
+
         [ToggleOff(_BAKERY_MONOSH_OFF)] _BakeryMonoSH ("Bakery Mono SH", Float) = 1
 
 

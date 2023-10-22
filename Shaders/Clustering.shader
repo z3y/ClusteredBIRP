@@ -2,7 +2,9 @@
 {
     Properties
     {
-        _MainTex ("Texture", 2D) = "white" {}
+        [HideInInspector] _MainTex ("Texture", 2D) = "white" {}
+        [NoScaleOffset] _Udon_CBIRP_Uniforms ("Uniforms", 2D) = "black" {}
+
     }
     SubShader
     {
@@ -26,8 +28,6 @@
             #include "UnityCustomRenderTexture.cginc"
 
             float _Udon_CBIRP_ConeRadii[128];
-
-            Texture2D<float4> _MainTex;
 
             uint4 frag (v2f_customrendertexture i) : SV_Target
             {
@@ -79,10 +79,8 @@
                 uint packShift = 0;
 
                 [loop]
-                for (uint lightIndex = 0; lightIndex < CBIRP_MAX_LIGHTS && packIndex < 4; lightIndex++)
+                for (uint lightIndex = 1; lightIndex < CBIRP_MAX_LIGHTS && packIndex < 4; lightIndex++)
                 {
-                    float4 lightData0 = _MainTex[uint2(lightIndex, 0)];
-
                     CBIRP::Light light =  CBIRP::Light::DecodeLight(lightIndex);
 
                     if (!light.enabled)
@@ -172,7 +170,7 @@
                                 packIndex++;
                                 if (packIndex >= 5) break;
                             }
-                            lightIndices[packIndex] |= (lightIndex + 1) << packShift; // compiler doesnt like it as uint4
+                            lightIndices[packIndex] |= (lightIndex) << packShift; // compiler doesnt like it as uint4
                             packShift += CBIRP_CULLING_INDEX_BITS;
                         }
                     }

@@ -21,7 +21,7 @@ Cull Off
 
             #pragma shader_feature_local _REFLECTION_PROBE
             #pragma multi_compile_instancing
-            #pragma instancing_options assumeuniformscaling nolodfade nolightprobe nolightmap forcemaxcount:256 maxcount:256 // max count in vrchat seems to be 128, needs offset for ID
+            #pragma instancing_options assumeuniformscaling nolodfade nolightprobe nolightmap forcemaxcount:128 maxcount:128 // max count in vrchat seems to be 128, needs offset for ID
 
             #include "UnityCG.cginc"
             #include "Constants.hlsl"
@@ -160,11 +160,13 @@ Cull Off
                 }
                 #else // LIGHTS
                     half range = prop1.x;
+                    range = 25;
                     half innerAngle = prop1.g;
                     half outerAngle = prop1.b;
                     bool isSpot = prop1.a > 0;
 
                     float3 color = prop0.rgb;
+                    color = 1;
                     float intensity = prop0.a;
 
                     half flickerSpeed = prop2.y;

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -49,6 +50,10 @@ namespace z3y
                 {
                     break;
                 }
+            }
+            if (manager == null)
+            {
+                return;
             }
 
             var probesCount = manager.GetProbesCount();

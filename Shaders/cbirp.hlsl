@@ -4,7 +4,7 @@
 #include "Constants.hlsl"
 #include "Filament.hlsl"
 
-// Texture2D<float4> _UdonLightUniforms;
+Texture2D<float4> _Udon_CBIRP_Uniforms;
 Texture2D<uint4> _Udon_CBIRP_Culling;
 TextureCubeArray _Udon_CBIRP_ReflectionProbes;
 TextureCube _Udon_CBIRP_SkyProbe;
@@ -18,7 +18,6 @@ Texture2D _Udon_CBIRP_ShadowMask;
     uint offset = 0; \
     [loop] while (true) { \
         UNITY_BRANCH if (index == 0) { break; } \
-        index -= 1; \
 
 #define CBIRP_CLUSTER_END \
         offset += 8; \
@@ -32,19 +31,19 @@ uniform float _Udon_CBIRP_CullFar;
 uniform float4 _Udon_CBIRP_PlayerCamera;
 uniform float4 _Udon_CBIRP_ProbeDecodeInstructions;
 
-#ifdef CBIRP_GLOBAL_UNIFORMS
-cbuffer CBIRP_Uniforms
-{
-    uniform float4 _Udon_CBIRP_Light0[CBIRP_MAX_LIGHTS];
-    uniform float4 _Udon_CBIRP_Light1[CBIRP_MAX_LIGHTS];
-    uniform float4 _Udon_CBIRP_Light2[CBIRP_MAX_LIGHTS];
-    uniform float4 _Udon_CBIRP_Light3[CBIRP_MAX_LIGHTS];
+// #ifdef CBIRP_GLOBAL_UNIFORMS
+// cbuffer CBIRP_Uniforms
+// {
+//     uniform float4 _Udon_CBIRP_Light0[CBIRP_MAX_LIGHTS];
+//     uniform float4 _Udon_CBIRP_Light1[CBIRP_MAX_LIGHTS];
+//     uniform float4 _Udon_CBIRP_Light2[CBIRP_MAX_LIGHTS];
+//     uniform float4 _Udon_CBIRP_Light3[CBIRP_MAX_LIGHTS];
 
-    uniform float4 _Udon_CBIRP_Probe0[CBIRP_MAX_PROBES];
-    uniform float4 _Udon_CBIRP_Probe1[CBIRP_MAX_PROBES];
-    uniform float4 _Udon_CBIRP_Probe2[CBIRP_MAX_PROBES];
-};
-#endif
+//     uniform float4 _Udon_CBIRP_Probe0[CBIRP_MAX_PROBES];
+//     uniform float4 _Udon_CBIRP_Probe1[CBIRP_MAX_PROBES];
+//     uniform float4 _Udon_CBIRP_Probe2[CBIRP_MAX_PROBES];
+// };
+// #endif
 
 namespace CBIRP
 {
@@ -94,21 +93,41 @@ namespace CBIRP
         static Light DecodeLight(uint index)
         {
             Light l = (Light)0;
-            float4 data0 = _Udon_CBIRP_Light0[index];
-            float4 data1 = _Udon_CBIRP_Light1[index];
-            float4 data2 = _Udon_CBIRP_Light2[index];
-            float4 data3 = _Udon_CBIRP_Light3[index];
+            float4 data0 = _Udon_CBIRP_Uniforms[uint2(index, 0)];
+            data0.y += _Udon_CBIRP_Uniforms[uint2(index, 1)] * 0.01;
+            // data0.y += _Udon_CBIRP_Uniforms[uint2(index, 2)] * 0.01;
+            // data0.y += _Udon_CBIRP_Uniforms[uint2(index, 3)] * 0.01;
+            // data0.y += _Udon_CBIRP_Uniforms[uint2(index, 4)] * 0.01;
+            // data0.y += _Udon_CBIRP_Uniforms[uint2(index, 5)] * 0.01;
+            // data0.y += _Udon_CBIRP_Uniforms[uint2(index, 6)] * 0.01;
+            // float4 data0 = _Udon_CBIRP_Light0[index];
+            // float4 data1 = _Udon_CBIRP_Light1[index];
+            // float4 data2 = _Udon_CBIRP_Light2[index];
+            // float4 data3 = _Udon_CBIRP_Light3[index];
+            // l.enabled = data0.w != 0;
+            // l.positionWS = data0.xyz;
+            // l.range = data0.w;
+            // l.spot = data2.w == 1;
+            // l.direction = data2.xyz;
+            // l.color = data1.xyz;
+            // l.shadowmaskID = data1.w;
+            // l.shadowmask = data1.w >= 0;
+            // l.spotScale = data3.x;
+            // l.spotOffset = data3.y;
+            // l.specularOnly = data3.z;
+
+
             l.enabled = data0.w != 0;
             l.positionWS = data0.xyz;
-            l.range = data0.w;
-            l.spot = data2.w == 1;
-            l.direction = data2.xyz;
-            l.color = data1.xyz;
-            l.shadowmaskID = data1.w;
-            l.shadowmask = data1.w >= 0;
-            l.spotScale = data3.x;
-            l.spotOffset = data3.y;
-            l.specularOnly = data3.z;
+            l.range = 25;
+            l.spot = false;
+            l.direction = 0;
+            l.color = float3(533,4,2);
+            l.shadowmaskID = -1;
+            l.shadowmask = false;
+            l.spotScale = 0;
+            l.spotOffset = 0;
+            l.specularOnly = false;
 
             return l;
         }
@@ -132,16 +151,16 @@ namespace CBIRP
         static ReflectionProbe DecodeReflectionProbe(uint index)
         {
             ReflectionProbe p = (ReflectionProbe)0;
-            float4 data0 = _Udon_CBIRP_Probe0[index];
-            float4 data1 = _Udon_CBIRP_Probe1[index];
-            float4 data2 = _Udon_CBIRP_Probe2[index];
-            p.positionWS = data0.xyz;
-            p.intensity = abs(data0.w);
-            p.boxProjection = data0.w > 0.0;
-            p.arrayIndex = data1.w;
-            p.boxMin = data1.xyz;
-            p.boxMax = data2.xyz;
-            p.blendDistance = data2.w;
+            // float4 data0 = _Udon_CBIRP_Probe0[index];
+            // float4 data1 = _Udon_CBIRP_Probe1[index];
+            // float4 data2 = _Udon_CBIRP_Probe2[index];
+            // p.positionWS = data0.xyz;
+            // p.intensity = abs(data0.w);
+            // p.boxProjection = data0.w > 0.0;
+            // p.arrayIndex = data1.w;
+            // p.boxMin = data1.xyz;
+            // p.boxMax = data2.xyz;
+            // p.blendDistance = data2.w;
 
             return p;
         }
@@ -310,47 +329,48 @@ debug+=1;
 
     half3 SampleProbes(uint2 clusterIndex, half3 reflectVector, float3 positionWS, half perceptualRoughness)
     {
-        half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
-        float debug = 0;
-        half3 irradiance = 0;
-        float totalWeight = 0;
+        return 0;
+        // half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
+        // float debug = 0;
+        // half3 irradiance = 0;
+        // float totalWeight = 0;
 
-        half4 decodeInstructions = _Udon_CBIRP_ProbeDecodeInstructions;
+        // half4 decodeInstructions = _Udon_CBIRP_ProbeDecodeInstructions;
 
-        ProbesClusterOffset(clusterIndex);
+        // ProbesClusterOffset(clusterIndex);
 
-        CBIRP_CLUSTER_START(clusterIndex)
-            ReflectionProbe probe = ReflectionProbe::DecodeReflectionProbe(index);
-            debug += 1;
+        // CBIRP_CLUSTER_START(clusterIndex)
+        //     ReflectionProbe probe = ReflectionProbe::DecodeReflectionProbe(index);
+        //     debug += 1;
 
-            float weight = CalculateProbeWeight(positionWS, probe.boxMin, probe.boxMax, probe.blendDistance);
+        //     float weight = CalculateProbeWeight(positionWS, probe.boxMin, probe.boxMax, probe.blendDistance);
 
-            UNITY_BRANCH
-            if (weight > 0.0)
-            {
-                weight = min(weight, 1.0 - totalWeight);
-                totalWeight += weight;
+        //     UNITY_BRANCH
+        //     if (weight > 0.0)
+        //     {
+        //         weight = min(weight, 1.0 - totalWeight);
+        //         totalWeight += weight;
 
-                half3 reflectVectorBox = BoxProjectedCubemapDirection(reflectVector, positionWS, probe.positionWS, probe.boxMin, probe.boxMax, probe.boxProjection);
-                half4 encodedIrradiance = half4(_Udon_CBIRP_ReflectionProbes.SampleLevel(sampler_Udon_CBIRP_ReflectionProbes, half4(reflectVectorBox, probe.arrayIndex), mip));
-                irradiance += weight * DecodeHDREnvironment(encodedIrradiance, half4(probe.intensity, decodeInstructions.yzw));
-            }
+        //         half3 reflectVectorBox = BoxProjectedCubemapDirection(reflectVector, positionWS, probe.positionWS, probe.boxMin, probe.boxMax, probe.boxProjection);
+        //         half4 encodedIrradiance = half4(_Udon_CBIRP_ReflectionProbes.SampleLevel(sampler_Udon_CBIRP_ReflectionProbes, half4(reflectVectorBox, probe.arrayIndex), mip));
+        //         irradiance += weight * DecodeHDREnvironment(encodedIrradiance, half4(probe.intensity, decodeInstructions.yzw));
+        //     }
 
-        CBIRP_CLUSTER_END
+        // CBIRP_CLUSTER_END
 
-        #ifdef CBIRP_SKYPROBE
-        UNITY_BRANCH
-        if (totalWeight < 0.99f)
-        {
-            half4 encodedIrradiance = half4(_Udon_CBIRP_SkyProbe.SampleLevel(sampler_Udon_CBIRP_ReflectionProbes, half3(reflectVector), mip));
-            irradiance += (1.0f - totalWeight) * encodedIrradiance;
-        }
-        #endif
+        // #ifdef CBIRP_SKYPROBE
+        // UNITY_BRANCH
+        // if (totalWeight < 0.99f)
+        // {
+        //     half4 encodedIrradiance = half4(_Udon_CBIRP_SkyProbe.SampleLevel(sampler_Udon_CBIRP_ReflectionProbes, half3(reflectVector), mip));
+        //     irradiance += (1.0f - totalWeight) * encodedIrradiance;
+        // }
+        // #endif
 
-        #ifdef _CBIRP_DEBUG
-        return debug / 16.;
-        #endif
-        return irradiance;
+        // #ifdef _CBIRP_DEBUG
+        // return debug / 16.;
+        // #endif
+        // return irradiance;
     }
 }
 

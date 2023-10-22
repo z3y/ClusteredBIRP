@@ -2,11 +2,11 @@
 // #define DEBUG_PROBE_BRANCH
 
 
-#define CBIRP_CULL_FAR _Udon_CBIRP_CullFar
+// #define CBIRP_CULL_FAR _Udon_CBIRP_CullFar
 // #define CBIRP_CULL_FAR _ProjectionParams.z
-// #define CBIRP_CULL_FAR 100
-// #define CBIRP_PLAYER_POS _WorldSpaceCameraPos.xyz
-#define CBIRP_PLAYER_POS _Udon_CBIRP_PlayerCamera.xyz
+#define CBIRP_CULL_FAR 100
+#define CBIRP_PLAYER_POS _WorldSpaceCameraPos.xyz
+// #define CBIRP_PLAYER_POS _Udon_CBIRP_PlayerCamera.xyz
 
 #include "ConstantsGenerated.hlsl"
 
