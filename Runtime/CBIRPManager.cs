@@ -13,7 +13,7 @@ namespace CBIRP
     {
         public float cullFar = 100f;
         public CustomRenderTexture clustering;
-        public RenderTexture uniforms;
+        public CustomRenderTexture uniforms;
         public Texture2D shadowmask;
         public CubemapArray reflectionProbeArray;
         //public Cubemap skyProbe;
@@ -26,6 +26,7 @@ namespace CBIRP
 
         public void SetGlobalUniforms()
         {
+            uniforms.material.SetFloat("_Far", cullFar);
             VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_Uniforms"), uniforms);
             VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_Culling"), clustering);
             VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_ShadowMask"), shadowmask);

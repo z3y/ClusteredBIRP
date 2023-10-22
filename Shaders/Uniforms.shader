@@ -3,6 +3,7 @@
     Properties
     {
         [Toggle(_REFLECTION_PROBE)] _ReflectionProbe("Reflection Probe", Float) = 0
+        [Toggle(_CLEAR)] _Clear("Clear", Float) = 0
     }
     SubShader
     {
@@ -20,6 +21,7 @@ Cull Off
             #pragma fragment frag
 
             #pragma shader_feature_local _REFLECTION_PROBE
+            #pragma shader_feature_local _CLEAR
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling nolodfade nolightprobe nolightmap forcemaxcount:128 maxcount:128 // max count in vrchat seems to be 128, needs offset for ID
 
@@ -88,9 +90,17 @@ Cull Off
 
 
                 uv.xy = inUV * 2 - 1;
+                
+                #ifdef _CLEAR
+                    uv.x = v.uv.x + (1.0 / CBIRP_UNIFORMS_SIZE.x);
+                    uv.y = v.uv.y;
+                    uv.xy = uv.xy * 2 - 1;
+                #endif
                 uv.y *= _ProjectionParams.x;
 
+
                 o.vertex = uv;
+
 
                 o.vertex *= IsOrtho(); // only needed for scene view 
 
@@ -117,6 +127,10 @@ Cull Off
             float4 frag (v2f i) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(i);
+
+                #ifdef _CLEAR
+                return 0;
+                #endif
 
                 #ifdef INSTANCING_ON
                 uint index = i.instanceID + 1;  // 0 reserved for no lights
