@@ -1,8 +1,14 @@
 ﻿
 using UdonSharp;
 using UnityEngine;
+using VRC;
 using VRC.SDKBase;
 using VRC.Udon;
+
+#if !COMPILER_UDONSHARP && UNITY_EDITOR
+using UdonSharpEditor;
+using UnityEditor;
+#endif
 
 namespace CBIRP
 {
@@ -94,4 +100,51 @@ namespace CBIRP
         }
 #endif
     }
+
+    #if !COMPILER_UDONSHARP && UNITY_EDITOR
+    [CustomEditor(typeof(CBIRPLight)), CanEditMultipleObjects]
+    public class CBIRPLightEditor : Editor
+    {
+        public override void OnInspectorGUI()
+        {
+            if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target)) return;
+
+            base.OnInspectorGUI();
+            var l = (CBIRPLight)target;
+            if (targets.Length > 1)
+            {
+                return;
+            }
+    #if BAKERY_INCLUDED
+
+            var bakeryLight = l.gameObject.GetComponent<BakeryPointLight>();
+            if (bakeryLight && GUILayout.Button("Match Bakery Light to this Light"))
+            {
+                bakeryLight.color = l.color;
+                bakeryLight.realisticFalloff = true;
+                if (l.shadowMask)
+                {
+                    bakeryLight.shadowmask = l.shadowMask;
+                    bakeryLight.bakeToIndirect = l.specularOnlyShadowmask;
+                }
+                else
+                {
+                    bakeryLight.shadowmask = false;
+                    bakeryLight.bakeToIndirect = false;
+                }
+
+                bakeryLight.angle = l.outerAngle;
+                bakeryLight.innerAngle = l.innerAnglePercent;
+                bakeryLight.intensity = l.intensity;
+                bakeryLight.projMode = l.lightType == 1 ?
+                    BakeryPointLight.ftLightProjectionMode.Omni :
+                    BakeryPointLight.ftLightProjectionMode.Cone;
+                bakeryLight.cutoff = l.range;
+                bakeryLight.MarkDirty();
+
+            }
+    #endif
+        }
+    }
+    #endif
 }
