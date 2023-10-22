@@ -182,7 +182,7 @@ Cull Off
                     half shadowMaskID = prop2.x;
                     bool specularOnlyShadowmask = prop2.y > 0;
                     
-                    float spotScale = 0;
+                    float spotScale = 1;
                     float spotOffset = 0;
                     UNITY_BRANCH
                     if (isSpot)
