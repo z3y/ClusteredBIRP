@@ -82,24 +82,6 @@ namespace CBIRP
             Light l = (Light)0;
             float4 data0 = _Udon_CBIRP_Uniforms[uint2(index, 0)];
             float4 data1 = _Udon_CBIRP_Uniforms[uint2(index, 1)];
-            // float4 data2 = _Udon_CBIRP_Uniforms[uint2(index, 2)];
-            // float4 data3 = _Udon_CBIRP_Uniforms[uint2(index, 3)];
-
-            // float4 data0 = _Udon_CBIRP_Light0[index];
-            // float4 data1 = _Udon_CBIRP_Light1[index];
-            // float4 data2 = _Udon_CBIRP_Light2[index];
-            // float4 data3 = _Udon_CBIRP_Light3[index];
-            // l.enabled = data0.w != 0;
-            // l.positionWS = data0.xyz;
-            // l.range = data0.w;
-            // l.spot = data2.w == 1;
-            // l.direction = data2.xyz;
-            // l.color = data1.xyz;
-            // l.shadowmaskID = data1.w;
-            // l.shadowmask = data1.w >= 0;
-            // l.spotScale = data3.x;
-            // l.spotOffset = data3.y;
-            // l.specularOnly = data3.z;
 
             l.enabled = data0.w != 0;
             l.positionWS = data0.xyz;
@@ -144,9 +126,9 @@ namespace CBIRP
         static ReflectionProbe DecodeReflectionProbe(uint index)
         {
             ReflectionProbe p = (ReflectionProbe)0;
-            float4 data0 = _Udon_CBIRP_Uniforms[uint2(index, 4)];
-            float4 data1 = _Udon_CBIRP_Uniforms[uint2(index, 5)];
-            
+            float4 data0 = _Udon_CBIRP_Uniforms[uint2(index, 2)];
+            float4 data1 = _Udon_CBIRP_Uniforms[uint2(index, 3)];
+
             p.positionWS = data0.xyz;
             p.blendDistance = data0.w;
 
@@ -315,6 +297,8 @@ debug+=1;
  
     half3 DecodeHDREnvironment(half4 encodedIrradiance, half4 decodeInstructions)
     {
+        decodeInstructions.zw = 0;
+        decodeInstructions.y = 1;
         // Take into account texture alpha if decodeInstructions.w is true(the alpha value affects the RGB channels)
         half alpha = max(decodeInstructions.w * (encodedIrradiance.a - 1.0) + 1.0, 0.0);
 
@@ -348,14 +332,12 @@ debug+=1;
             UNITY_BRANCH
             if (weight > 0.0)
             {
-                irradiance += weight;
-
                 weight = min(weight, 1.0 - totalWeight);
                 totalWeight += weight;
 
                 half3 reflectVectorBox = BoxProjectedCubemapDirection(reflectVector, positionWS, probe.positionWS, probe.boxMin, probe.boxMax, probe.boxProjection);
                 half4 encodedIrradiance = half4(_Udon_CBIRP_ReflectionProbes.SampleLevel(sampler_Udon_CBIRP_ReflectionProbes, half4(reflectVectorBox, probe.arrayIndex), mip));
-                // irradiance += weight * DecodeHDREnvironment(encodedIrradiance, half4(probe.intensity, decodeInstructions.yzw));
+                irradiance += weight * DecodeHDREnvironment(encodedIrradiance, half4(probe.intensity, decodeInstructions.yzw));
             }
 
         CBIRP_CLUSTER_END
