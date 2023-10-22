@@ -3,6 +3,7 @@
 
 #include "Constants.hlsl"
 #include "Filament.hlsl"
+#include "Packing.hlsl"
 
 Texture2D<float4> _Udon_CBIRP_Uniforms;
 Texture2D<uint4> _Udon_CBIRP_Culling;
@@ -62,20 +63,6 @@ namespace CBIRP
         return 1.0 - r * r;
     }
 
-    // :bgolus: https://forum.unity.com/threads/storing-two-16-bits-halfs-in-one-32-bits-float.987531/
-    void UnpackFloat(float input, out float a, out float b)
-    {
-        uint uintInput = asuint(input);
-        a = f16tof32(uintInput >> 16);
-        b = f16tof32(uintInput);
-    }
-    void UnpackFloat(float4 input, out float4 a, out float4 b)
-    {
-        uint4 uintInput = asuint(input);
-        a = f16tof32(uintInput >> 16);
-        b = f16tof32(uintInput);
-    }
-
     struct Light
     {
         float3 positionWS;
@@ -85,7 +72,7 @@ namespace CBIRP
         float3 color;
         bool shadowmask;
         uint shadowmaskID;
-        float3 direction;
+        half3 direction;
         half spotOffset;
         half spotScale;
         bool specularOnly;
@@ -116,21 +103,24 @@ namespace CBIRP
 
             l.enabled = data0.w != 0;
             l.positionWS = data0.xyz;
-            l.range = abs(data0.w);
-            l.spot = data0.w < 0;
-            // l.shadowmaskID = data1.w;
-            // l.shadowmask = data1.w >= 0;
+            half unpackedData0a;
+            half unpackedData0b;
+            CBIRP_Packing::UnpackFloat(data0.w, unpackedData0a, unpackedData0b);
+            l.range = abs(unpackedData0a);
+            l.spot = unpackedData0a < 0;
+            l.shadowmaskID = unpackedData0b;
+            l.shadowmask = unpackedData0b >= 0;
 
-            float4 unpackedData1a;
-            float4 unpackedData1b;
-            UnpackFloat(data1, unpackedData1a, unpackedData1b);
+            half4 unpackedData1a;
+            half4 unpackedData1b;
+            CBIRP_Packing::UnpackFloat(data1, unpackedData1a, unpackedData1b);
 
             l.color = unpackedData1a.xyz;
             l.direction = unpackedData1b.xyz;
-            l.spotScale = unpackedData1a.w;
+            l.spotScale = abs(unpackedData1a.w);
             l.spotOffset = unpackedData1b.w;
 
-            // l.specularOnly = false;
+            l.specularOnly = unpackedData1a.w < 0;
 
             return l;
         }
@@ -154,16 +144,24 @@ namespace CBIRP
         static ReflectionProbe DecodeReflectionProbe(uint index)
         {
             ReflectionProbe p = (ReflectionProbe)0;
-            // float4 data0 = _Udon_CBIRP_Probe0[index];
-            // float4 data1 = _Udon_CBIRP_Probe1[index];
-            // float4 data2 = _Udon_CBIRP_Probe2[index];
-            // p.positionWS = data0.xyz;
-            // p.intensity = abs(data0.w);
-            // p.boxProjection = data0.w > 0.0;
-            // p.arrayIndex = data1.w;
-            // p.boxMin = data1.xyz;
-            // p.boxMax = data2.xyz;
-            // p.blendDistance = data2.w;
+            float4 data0 = _Udon_CBIRP_Uniforms[uint2(index, 4)];
+            float4 data1 = _Udon_CBIRP_Uniforms[uint2(index, 5)];
+            
+            p.positionWS = data0.xyz;
+            p.blendDistance = data0.w;
+
+            half4 unpackedData1a;
+            half4 unpackedData1b;
+            CBIRP_Packing::UnpackFloat(data1, unpackedData1a, unpackedData1b);
+            half3 probeCenter = unpackedData1b.xyz;
+            half3 probeSizeHalf = unpackedData1a.xyz;
+
+            p.intensity = abs(unpackedData1a.w);
+            p.boxProjection = unpackedData1a.w > 0.0;
+            p.arrayIndex = unpackedData1b.w;
+
+            p.boxMin = p.positionWS + probeCenter - probeSizeHalf;
+            p.boxMax = p.positionWS + probeCenter + probeSizeHalf;
 
             return p;
         }
@@ -211,7 +209,7 @@ debug+=1;
                 // float attenuation = GetSquareFalloffAttenuation(distanceSquare, light.range);
                 float attenuation = GetSquareFalloffAttenuationCustom(distanceSquare, light.range);
 
-                UNITY_BRANCH
+                // UNITY_BRANCH
                 if (light.spot)
                 {
                     attenuation *= GetSpotAngleAttenuation(light.direction, L, light.spotScale, light.spotOffset);
@@ -332,48 +330,49 @@ debug+=1;
 
     half3 SampleProbes(uint2 clusterIndex, half3 reflectVector, float3 positionWS, half perceptualRoughness)
     {
-        return 0;
-        // half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
-        // float debug = 0;
-        // half3 irradiance = 0;
-        // float totalWeight = 0;
+        half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
+        float debug = 0;
+        half3 irradiance = 0;
+        float totalWeight = 0;
 
-        // half4 decodeInstructions = _Udon_CBIRP_ProbeDecodeInstructions;
+        half4 decodeInstructions = _Udon_CBIRP_ProbeDecodeInstructions;
 
-        // ProbesClusterOffset(clusterIndex);
+        ProbesClusterOffset(clusterIndex);
 
-        // CBIRP_CLUSTER_START(clusterIndex)
-        //     ReflectionProbe probe = ReflectionProbe::DecodeReflectionProbe(index);
-        //     debug += 1;
+        CBIRP_CLUSTER_START(clusterIndex)
+            ReflectionProbe probe = ReflectionProbe::DecodeReflectionProbe(index);
+            debug += 1;
 
-        //     float weight = CalculateProbeWeight(positionWS, probe.boxMin, probe.boxMax, probe.blendDistance);
+            float weight = CalculateProbeWeight(positionWS, probe.boxMin, probe.boxMax, probe.blendDistance);
 
-        //     UNITY_BRANCH
-        //     if (weight > 0.0)
-        //     {
-        //         weight = min(weight, 1.0 - totalWeight);
-        //         totalWeight += weight;
+            UNITY_BRANCH
+            if (weight > 0.0)
+            {
+                irradiance += weight;
 
-        //         half3 reflectVectorBox = BoxProjectedCubemapDirection(reflectVector, positionWS, probe.positionWS, probe.boxMin, probe.boxMax, probe.boxProjection);
-        //         half4 encodedIrradiance = half4(_Udon_CBIRP_ReflectionProbes.SampleLevel(sampler_Udon_CBIRP_ReflectionProbes, half4(reflectVectorBox, probe.arrayIndex), mip));
-        //         irradiance += weight * DecodeHDREnvironment(encodedIrradiance, half4(probe.intensity, decodeInstructions.yzw));
-        //     }
+                weight = min(weight, 1.0 - totalWeight);
+                totalWeight += weight;
 
-        // CBIRP_CLUSTER_END
+                half3 reflectVectorBox = BoxProjectedCubemapDirection(reflectVector, positionWS, probe.positionWS, probe.boxMin, probe.boxMax, probe.boxProjection);
+                half4 encodedIrradiance = half4(_Udon_CBIRP_ReflectionProbes.SampleLevel(sampler_Udon_CBIRP_ReflectionProbes, half4(reflectVectorBox, probe.arrayIndex), mip));
+                // irradiance += weight * DecodeHDREnvironment(encodedIrradiance, half4(probe.intensity, decodeInstructions.yzw));
+            }
 
-        // #ifdef CBIRP_SKYPROBE
-        // UNITY_BRANCH
-        // if (totalWeight < 0.99f)
-        // {
-        //     half4 encodedIrradiance = half4(_Udon_CBIRP_SkyProbe.SampleLevel(sampler_Udon_CBIRP_ReflectionProbes, half3(reflectVector), mip));
-        //     irradiance += (1.0f - totalWeight) * encodedIrradiance;
-        // }
-        // #endif
+        CBIRP_CLUSTER_END
 
-        // #ifdef _CBIRP_DEBUG
-        // return debug / 16.;
-        // #endif
-        // return irradiance;
+        #ifdef CBIRP_SKYPROBE
+        UNITY_BRANCH
+        if (totalWeight < 0.99f)
+        {
+            half4 encodedIrradiance = half4(_Udon_CBIRP_SkyProbe.SampleLevel(sampler_Udon_CBIRP_ReflectionProbes, half3(reflectVector), mip));
+            irradiance += (1.0f - totalWeight) * encodedIrradiance;
+        }
+        #endif
+
+        #ifdef _CBIRP_DEBUG
+        return debug / 16.;
+        #endif
+        return irradiance;
     }
 }
 

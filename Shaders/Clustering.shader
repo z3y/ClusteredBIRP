@@ -234,7 +234,7 @@
                 uint packShift = 0;
 
                 [loop]
-                for (uint lightIndex = 0; lightIndex < CBIRP_MAX_PROBES && packIndex < 4; lightIndex++)
+                for (uint lightIndex = 1; lightIndex < CBIRP_MAX_PROBES && packIndex < 4; lightIndex++)
                 {
 
                     CBIRP::ReflectionProbe probe = CBIRP::ReflectionProbe::DecodeReflectionProbe(lightIndex);
@@ -273,7 +273,7 @@
                             packIndex++;
                             if (packIndex >= 5) break;
                         }
-                        lightIndices[packIndex] |= (lightIndex + 1) << packShift; // compiler doesnt like it as uint4
+                        lightIndices[packIndex] |= (lightIndex) << packShift; // compiler doesnt like it as uint4
                         packShift += CBIRP_CULLING_INDEX_BITS;
                     }
                 }

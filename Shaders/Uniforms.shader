@@ -25,23 +25,7 @@ Cull Off
 
             #include "UnityCG.cginc"
             #include "Constants.hlsl"
-    
-            float PackFloats(float a, float b)
-            {
-                //Packing
-                uint a16 = f32tof16(a);
-                uint b16 = f32tof16(b);
-                uint abPacked = (a16 << 16) | b16;
-                return asfloat(abPacked);
-            }
-            float4 PackFloats(float4 a, float4 b)
-            {
-                //Packing
-                uint4 a16 = f32tof16(a);
-                uint4 b16 = f32tof16(b);
-                uint4 abPacked = (a16 << 16) | b16;
-                return asfloat(abPacked);
-            }
+            #include "Packing.hlsl"
 
             bool IsOrtho()
             {
@@ -148,6 +132,9 @@ Cull Off
                 float2 uv = i.uv.xy;
                 uint writeIndex = uv.y * CBIRP_UNIFORMS_SIZE.y * 0.5;
 
+                float3 probeCenter = prop1.xyz;
+                float3 probeSize = prop2.xyz * 0.5;
+
                 #ifdef _REFLECTION_PROBE
                 if (writeIndex == 0)
                 {
@@ -155,15 +142,21 @@ Cull Off
                 }
                 if (writeIndex == 1)
                 {
-                    return prop1;
+                    float4 unpackedData1a;
+                    float4 unpackedData1b;
+                    unpackedData1b.xyz = probeCenter;
+                    unpackedData1a.w = prop0.y > 0 ? prop0.x : -prop0.x;
+                    unpackedData1b.w = prop0.z;
+                    unpackedData1a.xyz = probeSize;
+                    return CBIRP_Packing::PackFloats(unpackedData1a, unpackedData1b);
                 }
                 if (writeIndex == 2)
                 {
-                    return prop2;
+                    return 0;
                 }
                 if (writeIndex == 3)
                 {
-                    return prop3;
+                    return 0;
                 }
                 #else // LIGHTS
                     half range = prop1.x;
@@ -187,6 +180,7 @@ Cull Off
 
                     
                     half shadowMaskID = prop2.x;
+                    bool specularOnlyShadowmask = prop2.y > 0;
                     
                     float spotScale = 0;
                     float spotOffset = 0;
@@ -201,6 +195,7 @@ Cull Off
                         spotOffset = -cosOuter * spotScale;
                     }
 
+                    UNITY_BRANCH
                     if (writeIndex == 0)
                     {
                         #if 0
@@ -210,28 +205,28 @@ Cull Off
 
                         float rangeScaled = range * range;
                         if (isSpot) rangeScaled = -rangeScaled;
-                        return float4(lightPosition, rangeScaled);
+                        return float4(lightPosition, CBIRP_Packing::PackFloats(rangeScaled, shadowMaskID));
                     }
                     else if (writeIndex == 1)
                     {
                         float4 unpackedData1a;
                         float4 unpackedData1b;
                         unpackedData1b.xyz = normalize(i.direction);
-                        unpackedData1a.w = spotScale;
+                        unpackedData1a.w = specularOnlyShadowmask ? -spotScale : spotScale;
                         unpackedData1b.w = spotOffset;
                         unpackedData1a.xyz = color * intensity;
-                        return PackFloats(unpackedData1a, unpackedData1b);
+                        return CBIRP_Packing::PackFloats(unpackedData1a, unpackedData1b);
                         // return float4(color.rgb * intensity, shadowMaskID);
 
                     }
-                    else if (writeIndex == 2)
-                    {
-                        // float4 packedData4a = normalize(i.direction);
-                        // float4 packedData4b;
-                        // UnpackFloat(data2, packedData4a, packedData4b);
-                        return 0;
-                        // return float4(, PackFloats(spotScale, spotOffset));
-                    }
+                    // else if (writeIndex == 2)
+                    // {
+                    //     // float4 packedData4a = normalize(i.direction);
+                    //     // float4 packedData4b;
+                    //     // UnpackFloat(data2, packedData4a, packedData4b);
+                    //     return 0;
+                    //     // return float4(, PackFloats(spotScale, spotOffset));
+                    // }
 
                 #endif
 
