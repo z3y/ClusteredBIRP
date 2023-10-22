@@ -34,6 +34,14 @@ Cull Off
                 uint abPacked = (a16 << 16) | b16;
                 return asfloat(abPacked);
             }
+            float4 PackFloats(float4 a, float4 b)
+            {
+                //Packing
+                uint4 a16 = f32tof16(a);
+                uint4 b16 = f32tof16(b);
+                uint4 abPacked = (a16 << 16) | b16;
+                return asfloat(abPacked);
+            }
 
             bool IsOrtho()
             {
@@ -206,11 +214,23 @@ Cull Off
                     }
                     else if (writeIndex == 1)
                     {
-                        return float4(color.rgb * intensity, shadowMaskID);
+                        float4 unpackedData1a;
+                        float4 unpackedData1b;
+                        unpackedData1b.xyz = normalize(i.direction);
+                        unpackedData1a.w = spotScale;
+                        unpackedData1b.w = spotOffset;
+                        unpackedData1a.xyz = color * intensity;
+                        return PackFloats(unpackedData1a, unpackedData1b);
+                        // return float4(color.rgb * intensity, shadowMaskID);
+
                     }
                     else if (writeIndex == 2)
                     {
-                        return float4(normalize(i.direction), PackFloats(spotScale, spotOffset));
+                        // float4 packedData4a = normalize(i.direction);
+                        // float4 packedData4b;
+                        // UnpackFloat(data2, packedData4a, packedData4b);
+                        return 0;
+                        // return float4(, PackFloats(spotScale, spotOffset));
                     }
 
                 #endif

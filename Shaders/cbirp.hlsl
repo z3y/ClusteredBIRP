@@ -62,6 +62,20 @@ namespace CBIRP
         return 1.0 - r * r;
     }
 
+    // :bgolus: https://forum.unity.com/threads/storing-two-16-bits-halfs-in-one-32-bits-float.987531/
+    void UnpackFloat(float input, out float a, out float b)
+    {
+        uint uintInput = asuint(input);
+        a = f16tof32(uintInput >> 16);
+        b = f16tof32(uintInput);
+    }
+    void UnpackFloat(float4 input, out float4 a, out float4 b)
+    {
+        uint4 uintInput = asuint(input);
+        a = f16tof32(uintInput >> 16);
+        b = f16tof32(uintInput);
+    }
+
     struct Light
     {
         float3 positionWS;
@@ -81,8 +95,8 @@ namespace CBIRP
             Light l = (Light)0;
             float4 data0 = _Udon_CBIRP_Uniforms[uint2(index, 0)];
             float4 data1 = _Udon_CBIRP_Uniforms[uint2(index, 1)];
-            float4 data2 = _Udon_CBIRP_Uniforms[uint2(index, 2)];
-            float4 data3 = _Udon_CBIRP_Uniforms[uint2(index, 3)];
+            // float4 data2 = _Udon_CBIRP_Uniforms[uint2(index, 2)];
+            // float4 data3 = _Udon_CBIRP_Uniforms[uint2(index, 3)];
 
             // float4 data0 = _Udon_CBIRP_Light0[index];
             // float4 data1 = _Udon_CBIRP_Light1[index];
@@ -102,15 +116,21 @@ namespace CBIRP
 
             l.enabled = data0.w != 0;
             l.positionWS = data0.xyz;
-            l.range = data0.w;
-            l.spot = false;
-            l.direction = 0;
-            l.color = data1.xyz;
-            l.shadowmaskID = -1;
-            l.shadowmask = false;
-            l.spotScale = 0;
-            l.spotOffset = 0;
-            l.specularOnly = false;
+            l.range = abs(data0.w);
+            l.spot = data0.w < 0;
+            // l.shadowmaskID = data1.w;
+            // l.shadowmask = data1.w >= 0;
+
+            float4 unpackedData1a;
+            float4 unpackedData1b;
+            UnpackFloat(data1, unpackedData1a, unpackedData1b);
+
+            l.color = unpackedData1a.xyz;
+            l.direction = unpackedData1b.xyz;
+            l.spotScale = unpackedData1a.w;
+            l.spotOffset = unpackedData1b.w;
+
+            // l.specularOnly = false;
 
             return l;
         }
@@ -191,11 +211,11 @@ debug+=1;
                 // float attenuation = GetSquareFalloffAttenuation(distanceSquare, light.range);
                 float attenuation = GetSquareFalloffAttenuationCustom(distanceSquare, light.range);
 
+                UNITY_BRANCH
                 if (light.spot)
                 {
                     attenuation *= GetSpotAngleAttenuation(light.direction, L, light.spotScale, light.spotOffset);
                 }
-
 
                 #ifdef LIGHTMAP_ON
                 if (light.shadowmask)
