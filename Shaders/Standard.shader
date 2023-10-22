@@ -10,16 +10,26 @@
         _BumpScale ("Normal Scale", Float) = 1.0
 
         [Toggle(_MASKMAP)] _MaskMapToggle ("Mask Map Enable", Float) = 0
-        [NoScaleOffset] _MetallicGlossMap("Mask Map", 2D) = "white" {}
+        [NoScaleOffset] _MetallicGlossMap("Mask Map (Occlusion - R, Roughness, G, Metallic B)", 2D) = "white" {}
         _Roughness ("Roughness", Range(0.0, 1.0)) = 0.5
         _Metallic ("Metallic", Range(0.0, 1.0)) = 0.0
         _OcclusionStrength ("Occlusion", Range(0.0, 1.0)) = 1.0
 
+        [Toggle(_EMISSION)] _EmissionToggle ("Enable Emission", Int) = 0
+        _EmissionMap ("Emission Map", 2D) = "white" {}
+        [HDR] _EmissionColor ("Emission Color", Color) = (1,1,1)
+        _EmissionMultiplyBase ("Multiply Base", Range(0,1)) = 0
+        //_EmissionGIMultiplier ("GI Multiplier", Float) = 1
+
         [Toggle(_GEOMETRIC_SPECULAR_AA)] _GeometricSpecularAAToggle ("Geometric Specular AA", Float) = 0
         [PowerSlider(2)] _GeometricSpecularAAVariance ("GSAA Variance", Range(0.0, 1.0)) = 0.15
         [PowerSlider(2)] _GeometricSpecularAAThreshold ("GSAA Threshold", Range(0.0, 1.0)) = 0.1
-        [NonModifiableTextureData] [NoScaleOffset]_DFG ("DFG", 2D) = "white" {}
+        [HideInInspector] [NonModifiableTextureData] [NoScaleOffset]_DFG ("DFG", 2D) = "white" {}
 
+        [ToggleOff(_BAKERY_MONOSH_OFF)] _BakeryMonoSH ("Bakery Mono SH", Float) = 1
+
+
+        [Space(10)]
         [Toggle(_CBIRP_DEBUG)] _CBIRPDebugModeEnable ("Debug", Float) = 0
         [Enum(Lights,0,Probes,1)] _CBIRPDebugMode ("Debug Mode", Float) = 0
     }
@@ -30,10 +40,6 @@ HLSLINCLUDE
 #pragma vertex vert
 #pragma fragment frag
 #pragma shader_feature_local _CUTOUT
-
-#ifdef LIGHTMAP_ON
-    #define DIRLIGHTMAP_COMBINED
-#endif
 
 #undef UNITY_SAMPLE_FULL_SH_PER_PIXEL
 #define UNITY_SAMPLE_FULL_SH_PER_PIXEL 1
@@ -151,6 +157,10 @@ Texture2D _BumpMap;
 SamplerState sampler_BumpMap;
 Texture2D _MetallicGlossMap;
 SamplerState sampler_MetallicGlossMap;
+Texture2D _EmissionMap;
+SamplerState sampler_EmissionMap;
+
+
 
 // CBUFFER_START(UnityPerMaterial)
     float4 _MainTex_ST;
@@ -161,6 +171,8 @@ SamplerState sampler_MetallicGlossMap;
     half _BumpScale;
     half _GeometricSpecularAAVariance;
     half _GeometricSpecularAAThreshold;
+    half3 _EmissionColor;
+    half _EmissionMultiplyBase;
 // CBUFFER_END
 
 Material InitializeMaterial(Varyings varyings)
@@ -193,6 +205,11 @@ Material InitializeMaterial(Varyings varyings)
         m.gsaaVariance = _GeometricSpecularAAVariance;
     #endif
 
+    #ifdef _EMISSION
+        m.emission = _EmissionMap.Sample(sampler_EmissionMap, mainUV) * _EmissionColor;
+        m.emission = lerp(m.emission, m.emission * m.albedo, _EmissionMultiplyBase);
+    #endif
+
     return m;
 }
 
@@ -223,6 +240,7 @@ ENDHLSL
             #pragma shader_feature_local _EMISSION
             #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local _MASKMAP
+            #pragma shader_feature_local _BAKERY_MONOSH_OFF
             #pragma shader_feature_local_fragment _GEOMETRIC_SPECULAR_AA
             uint _CBIRPDebugMode;
 
@@ -233,7 +251,9 @@ ENDHLSL
                 #undef _GEOMETRIC_SPECULAR_AA
             #endif
 
+            #ifndef _BAKERY_MONOSH_OFF
             #define MONO_SH
+            #endif
             
             half4 frag (Varyings varyings) : SV_Target
             {
@@ -283,7 +303,7 @@ ENDHLSL
                     float2 lightmapUV = varyings.lightmapUV;
                     half3 illuminance = DecodeLightmap(unity_Lightmap.SampleLevel(custom_bilinear_clamp_sampler, lightmapUV, 0));
 
-                    #ifdef DIRLIGHTMAP_COMBINED
+                    #if defined(DIRLIGHTMAP_COMBINED) || defined(MONO_SH)
                         half4 directionalLightmap = unity_LightmapInd.SampleLevel(custom_bilinear_clamp_sampler, lightmapUV, 0);
                         #ifdef MONO_SH
                             half3 L0 = illuminance;
@@ -300,7 +320,7 @@ ENDHLSL
                     #endif
                     diffuse += max(0.0, illuminance);
 
-                    #if defined(MONO_SH) && !defined(CBIRP_LOW) && defined(DIRLIGHTMAP_COMBINED)
+                    #if defined(MONO_SH) || (!defined(CBIRP_LOW) && defined(DIRLIGHTMAP_COMBINED))
                         half3 lightmapOcclusion = (dot(nL1, reflectVector) + 1.0) * L0 * 2.0;
                     #else
                         half3 lightmapOcclusion = illuminance;

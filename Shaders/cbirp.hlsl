@@ -11,9 +11,9 @@ TextureCube _Udon_CBIRP_SkyProbe;
 SamplerState sampler_Udon_CBIRP_ReflectionProbes;
 Texture2D _Udon_CBIRP_ShadowMask;
 
-    // uint4 indices = _Udon_CBIRP_Culling[cullIndex]; \/ this was slower
-#define CBIRP_CLUSTER_START(cullIndex) \
-    uint indices[4] = {_Udon_CBIRP_Culling[cullIndex].x, _Udon_CBIRP_Culling[cullIndex].y, _Udon_CBIRP_Culling[cullIndex].z, _Udon_CBIRP_Culling[cullIndex].w}; \
+    // uint4 indices = _Udon_CBIRP_Culling[clusterIndex]; \/ this was slower
+#define CBIRP_CLUSTER_START(clusterIndex) \
+    uint indices[4] = {_Udon_CBIRP_Culling[clusterIndex].x, _Udon_CBIRP_Culling[clusterIndex].y, _Udon_CBIRP_Culling[clusterIndex].z, _Udon_CBIRP_Culling[clusterIndex].w}; \
     uint index = indices[0] & 0x000000ff; \
     uint offset = 0; \
     [loop] while (true) { \
@@ -28,14 +28,13 @@ Texture2D _Udon_CBIRP_ShadowMask;
         index = offset < 128 ? index : 0; \
     } \
 
+uniform float _Udon_CBIRP_CullFar;
+uniform float4 _Udon_CBIRP_PlayerCamera;
+uniform float4 _Udon_CBIRP_ProbeDecodeInstructions;
 
 #ifdef CBIRP_GLOBAL_UNIFORMS
 cbuffer CBIRP_Uniforms
 {
-    uniform float _Udon_CBIRP_CullFar;
-    uniform float4 _Udon_CBIRP_PlayerCamera;
-    uniform float4 _Udon_CBIRP_ProbeDecodeInstructions;
-
     uniform float4 _Udon_CBIRP_Light0[CBIRP_MAX_LIGHTS];
     uniform float4 _Udon_CBIRP_Light1[CBIRP_MAX_LIGHTS];
     uniform float4 _Udon_CBIRP_Light2[CBIRP_MAX_LIGHTS];
@@ -168,12 +167,12 @@ namespace CBIRP
         return index_2d;
     }
 
-    void ComputeLights(uint2 cullIndex, float3 positionWS, float3 normalWS, float3 viewDirectionWS, half3 f0, half NoV, half roughness, half4 shadowmask, inout half3 diffuse, inout half3 specular)
+    void ComputeLights(uint2 clusterIndex, float3 positionWS, float3 normalWS, float3 viewDirectionWS, half3 f0, half NoV, half roughness, half4 shadowmask, inout half3 diffuse, inout half3 specular)
     {
         half clampedRoughness = max(roughness * roughness, 0.002);
         half debug = 0;
 
-        CBIRP_CLUSTER_START(cullIndex)
+        CBIRP_CLUSTER_START(clusterIndex)
 
 debug+=1;
             Light light = Light::DecodeLight(index);
@@ -304,8 +303,12 @@ debug+=1;
     }
 
 
+    void ProbesClusterOffset(inout uint2 clusterIndex)
+    {
+        clusterIndex.y += CBIRP_CULLING_SIZE.y / 2;
+    }
 
-    half3 SampleProbes(uint2 cullIndex, half3 reflectVector, float3 positionWS, half perceptualRoughness)
+    half3 SampleProbes(uint2 clusterIndex, half3 reflectVector, float3 positionWS, half perceptualRoughness)
     {
         half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
         float debug = 0;
@@ -314,8 +317,9 @@ debug+=1;
 
         half4 decodeInstructions = _Udon_CBIRP_ProbeDecodeInstructions;
 
-        cullIndex.y += CBIRP_CULLING_SIZE.y / 2;
-        CBIRP_CLUSTER_START(cullIndex)
+        ProbesClusterOffset(clusterIndex);
+
+        CBIRP_CLUSTER_START(clusterIndex)
             ReflectionProbe probe = ReflectionProbe::DecodeReflectionProbe(index);
             debug += 1;
 
