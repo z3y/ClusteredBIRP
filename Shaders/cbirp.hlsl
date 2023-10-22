@@ -28,9 +28,9 @@ Texture2D _Udon_CBIRP_ShadowMask;
         index = offset < 128 ? index : 0; \
     } \
 
-uniform float _Udon_CBIRP_CullFar;
-uniform float4 _Udon_CBIRP_PlayerCamera;
-uniform float4 _Udon_CBIRP_ProbeDecodeInstructions;
+// uniform float _Udon_CBIRP_CullFar;
+// uniform float4 _Udon_CBIRP_PlayerCamera;
+// uniform float4 _Udon_CBIRP_ProbeDecodeInstructions;
 
 namespace CBIRP
 {
@@ -319,7 +319,7 @@ debug+=1;
         half3 irradiance = 0;
         float totalWeight = 0;
 
-        half4 decodeInstructions = _Udon_CBIRP_ProbeDecodeInstructions;
+        half4 decodeInstructions = 0;
 
         ProbesClusterOffset(clusterIndex);
 

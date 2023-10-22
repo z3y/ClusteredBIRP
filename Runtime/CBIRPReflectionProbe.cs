@@ -1,122 +1,89 @@
-﻿#if !COMPILER_UDONSHARP && UNITY_EDITOR
+﻿
+using UdonSharp;
 using UnityEngine;
+using VRC.SDKBase;
+using VRC.Udon;
 
-namespace z3y
+namespace CBIRP
 {
-    [ExecuteInEditMode]
-    public class CBIRPReflectionProbe : MonoBehaviour
+    [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
+    public class CBIRPReflectionProbe : UdonSharpBehaviour
     {
-        [HideInInspector] public ReflectionProbe probe;
-
-        [HideInInspector] public Vector4 unity_SpecCube0_ProbePosition;
-        [HideInInspector] public Vector4 unity_SpecCube0_BoxMin;
-        [HideInInspector] public Vector4 unity_SpecCube0_BoxMax;
-        [HideInInspector] public Vector4 unity_SpecCube0_HDR;
+        public bool destroyComponent = true;
         public float blendDistance = 0.1f;
+        public int cubeArrayIndex = 0;
 
-        [HideInInspector] public int cubeArrayIndex = 0;
+        private MaterialPropertyBlock _propertyBlock;
+        public MeshRenderer meshRenderer;
+        public ReflectionProbe probe;
+
+        private int _Data0ID;
+        private int _Data1ID;
+        private int _Data2ID;
+        //private int _Data3ID;
+
+        private Vector4 _data0 = new Vector4();
+        private Vector4 _data1 = new Vector4();
+        private Vector4 _data2 = new Vector4();
+        //private Vector4 _data3 = new Vector4();
+
+
+        private bool _initialized = false;
+        private void Initialize()
+        {
+            _Data0ID = VRCShader.PropertyToID("_Data0");
+            _Data1ID = VRCShader.PropertyToID("_Data1");
+            _Data2ID = VRCShader.PropertyToID("_Data2");
+            //_Data3ID = VRCShader.PropertyToID("_Data3");
+            _propertyBlock = new MaterialPropertyBlock();
+
+            _initialized = true;
+        }
+
 
         void Start()
         {
-            InitailizeData();
-            if (gameObject.activeInHierarchy)
+            Initialize();
+            UpdateProbe();
+
+            if (destroyComponent)
             {
-                CBIRPManagerEditor.instance.AddProbe(this);
+                Destroy(this);
             }
-            if (!Application.isPlaying)
-            {
-                return;
-            }
-            Destroy(this);
         }
 
-        private void OnEnable()
+        public void UpdateProbe()
         {
-            if (gameObject.activeInHierarchy && CBIRPManagerEditor.instance)
-            {
-                CBIRPManagerEditor.instance.AddProbe(this);
-            }
+            _propertyBlock = new MaterialPropertyBlock();
+
+            //float intensity = probe.textureHDRDecodeValues.x;
+            _data0.x = probe.intensity;
+            _data0.y = probe.boxProjection ? 1f : 0f;
+            _data0.z = cubeArrayIndex;
+            _data0.w = blendDistance;
+
+            _data1 = probe.center;
+            _data2 = probe.size;
+
+            _propertyBlock.SetVector(_Data0ID, _data0);
+            _propertyBlock.SetVector(_Data1ID, _data1);
+            _propertyBlock.SetVector(_Data2ID, _data2);
+            //_propertyBlock.SetVector(_Data3ID, _data3);
+            meshRenderer.SetPropertyBlock(_propertyBlock);
         }
 
-        private void OnDestroy()
-        {
-            CBIRPManagerEditor.instance.RemoveProbe(this);
-        }
-
+#if UNITY_EDITOR
         private void OnValidate()
         {
-            if (!probe) return;
-            probe.blendDistance = blendDistance;
-        }
-
-        public void InitailizeData()
-        {
-            probe = GetComponent<ReflectionProbe>();
-            blendDistance = probe.blendDistance;
-        }
-
-        public Vector4 GetData0()
-        {
-            var pos = probe.transform.position;
-            bool boxProjection = probe.boxProjection;
-            float intensity = probe.textureHDRDecodeValues.x;
-            intensity = boxProjection ? intensity :  -intensity;
-            return new Vector4(pos.x, pos.y, pos.z, intensity);
-        }
-
-        public Vector4 GetData1()
-        {
-            //var min = probe.bounds.min;
-            var min = probe.transform.position + probe.center - (probe.size * 0.5f);
-
-            return new Vector4(min.x, min.y, min.z, cubeArrayIndex);
-        }
-
-        public Vector4 GetData2()
-        {
-            //var max = probe.bounds.max;
-            var max = probe.transform.position + probe.center + (probe.size * 0.5f);
-            return new Vector4(max.x, max.y, max.z, probe.blendDistance);
-        }
-
-        public Vector4 GetData3()
-        {
-            return probe.textureHDRDecodeValues;
-        }
-
-        /*private void UpdateProbeVariables()
-        {
-            if (!probe)
+            if (!_initialized)
             {
-                probe = GetComponent<ReflectionProbe>();
-                return;
+                Initialize();
             }
 
-            unity_SpecCube0_ProbePosition = GetData0();
-            unity_SpecCube0_BoxMin = GetData1();
-            unity_SpecCube0_BoxMax = GetData2();
-            unity_SpecCube0_HDR = GetData3();
+            blendDistance = Mathf.Clamp(blendDistance, 0, float.MaxValue);
 
-            if (_propertyBlock == null)
-            {
-                _meshRenderer = GetComponent<MeshRenderer>();
-                _propertyBlock = new MaterialPropertyBlock();
-
-                if (_meshRenderer.HasPropertyBlock())
-                {
-                    _meshRenderer.GetPropertyBlock(_propertyBlock);
-                }
-            }
-
-            _propertyBlock.SetVector("_Property0", unity_SpecCube0_ProbePosition);
-            _propertyBlock.SetVector("_Property1", unity_SpecCube0_BoxMin);
-            _propertyBlock.SetVector("_Property2", unity_SpecCube0_BoxMax);
-            _propertyBlock.SetVector("_Property3", unity_SpecCube0_HDR);
-
-
-            _meshRenderer.SetPropertyBlock(_propertyBlock);
-
-        }*/
+            UpdateProbe();
+        }
+#endif
     }
 }
-#endif
