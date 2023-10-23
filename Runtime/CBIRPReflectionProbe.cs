@@ -1,8 +1,14 @@
-﻿
-using UdonSharp;
+﻿using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
 using VRC.Udon;
+using UdonSharpEditor;
+
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+using UnityEditor;
+using System.Collections;
+using System.Collections.Generic;
+#endif
 
 namespace CBIRP
 {
@@ -56,8 +62,10 @@ namespace CBIRP
         public void UpdateProbe()
         {
             meshRenderer.sortingOrder = 128 - probe.importance;
-
-            _propertyBlock = new MaterialPropertyBlock();
+            if (_propertyBlock == null)
+            {
+                _propertyBlock = new MaterialPropertyBlock();
+            }
 
             //float intensity = probe.textureHDRDecodeValues.x;
             _data0.x = probe.intensity;
@@ -75,7 +83,13 @@ namespace CBIRP
             meshRenderer.SetPropertyBlock(_propertyBlock);
         }
 
-#if UNITY_EDITOR
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+
+        private void Update()
+        {
+            Debug.Log("aaa");
+        }
+
         public void OnValidate()
         {
             if (!_initialized)
@@ -89,4 +103,24 @@ namespace CBIRP
         }
 #endif
     }
+
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+    [CustomEditor(typeof(CBIRPReflectionProbe))]
+    public class CBIRPReflectionProbeEditor : Editor
+    {
+        public override void OnInspectorGUI()
+        {
+            if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target)) return;
+
+            base.OnInspectorGUI();
+
+            if (Application.isPlaying)
+            {
+                return;
+            }
+            var probe = (CBIRPReflectionProbe)target;
+            probe.UpdateProbe();
+        }
+    }
+#endif
 }

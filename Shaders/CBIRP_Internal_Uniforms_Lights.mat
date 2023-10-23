@@ -20,5 +20,6 @@ Material:
     serializedVersion: 3
     m_TexEnvs: []
     m_Floats:
+    - _Clear: 0
     - _ReflectionProbe: 0
     m_Colors: []
