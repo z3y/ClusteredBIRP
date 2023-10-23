@@ -28,11 +28,19 @@ namespace CBIRP
         {
             var objects = scene.GetRootGameObjects();
             var probes = objects.SelectMany(x => x.GetComponentsInChildren<CBIRPReflectionProbe>(false));
+            var lights = objects.SelectMany(x => x.GetComponentsInChildren<CBIRPLight>(true));
 
             foreach (var probe in probes)
             {
                 probe.probe.bakedTexture = null;
                 probe.enabled = false;
+            }
+
+            int order = 10000;
+            foreach (var light in lights)
+            {
+                light.meshRenderer.sortingOrder = order;
+                order++;
             }
         }
 

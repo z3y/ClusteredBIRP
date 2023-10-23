@@ -55,6 +55,8 @@ namespace CBIRP
 
         public void UpdateProbe()
         {
+            meshRenderer.sortingOrder = 128 - probe.importance;
+
             _propertyBlock = new MaterialPropertyBlock();
 
             //float intensity = probe.textureHDRDecodeValues.x;

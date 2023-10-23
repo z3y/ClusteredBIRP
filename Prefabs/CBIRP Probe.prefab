@@ -57,11 +57,11 @@ MonoBehaviour:
     PrefabModifications: []
     SerializationNodes: []
   _udonSharpBackingUdonBehaviour: {fileID: 2169391047014929947}
-  probe: {fileID: 5018727802146543098}
   destroyComponent: 1
   blendDistance: 0.1
   cubeArrayIndex: 0
   meshRenderer: {fileID: 3192795575258911616}
+  probe: {fileID: 5018727802146543098}
 --- !u!215 &5018727802146543098
 ReflectionProbe:
   m_ObjectHideFlags: 0
@@ -159,7 +159,7 @@ MeshRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 127
 --- !u!33 &7892692966851333613
 MeshFilter:
   m_ObjectHideFlags: 0

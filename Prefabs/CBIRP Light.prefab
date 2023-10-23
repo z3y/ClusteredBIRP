@@ -66,6 +66,7 @@ MonoBehaviour:
   shadowMask: 0
   specularOnlyShadowmask: 0
   meshRenderer: {fileID: 219479547}
+  _shadowMaskID: -1
 --- !u!33 &219479546
 MeshFilter:
   m_ObjectHideFlags: 0
