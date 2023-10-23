@@ -2,12 +2,12 @@
 using UnityEngine;
 using VRC.SDKBase;
 using VRC.Udon;
-using UdonSharpEditor;
 
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
 using UnityEditor;
 using System.Collections;
 using System.Collections.Generic;
+using UdonSharpEditor;
 #endif
 
 namespace CBIRP
