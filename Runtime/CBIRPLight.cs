@@ -8,6 +8,7 @@ using VRC.Udon;
 #if !COMPILER_UDONSHARP && UNITY_EDITOR
 using UdonSharpEditor;
 using UnityEditor;
+using System.Threading.Tasks;
 #endif
 
 namespace CBIRP
@@ -31,7 +32,7 @@ namespace CBIRP
         public MeshRenderer meshRenderer;
         private MaterialPropertyBlock _propertyBlock;
         private Light _unityLight;
-        private int _shadowMaskID = -1;
+        [SerializeField] private int _shadowMaskID = -1;
 
         private int _Data0ID;
         private int _Data1ID;
@@ -88,12 +89,40 @@ namespace CBIRP
             meshRenderer.SetPropertyBlock(_propertyBlock);
         }
 
-#if UNITY_EDITOR
-        private void OnValidate()
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+        // baking output not initliazed right at start 
+        async void CopyShadowMaskID()
+        {
+            await Task.Delay(1000);
+
+            if (Application.isPlaying)
+            {
+                return;
+            }
+
+            int channel = _unityLight.bakingOutput.occlusionMaskChannel;
+
+            if (_shadowMaskID != channel)
+            {
+                _shadowMaskID = channel;
+                this.MarkDirty();
+                UpdateLight();
+            }
+        }
+        void OnValidate()
         {
             if (!_initialized)
             {
                 Initialize();
+            }
+
+            if (!_unityLight)
+            {
+                _unityLight = GetComponent<Light>();
+            }
+            if (_unityLight)
+            {
+                CopyShadowMaskID();
             }
 
             UpdateLight();

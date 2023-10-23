@@ -4,6 +4,7 @@ using VRC.SDKBase;
 
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
 using UnityEditor;
+using System.Threading.Tasks;
 #endif
 
 namespace CBIRP

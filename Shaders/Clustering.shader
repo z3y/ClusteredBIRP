@@ -261,9 +261,9 @@
 
                     UNITY_BRANCH
                     if (all(
-                            positionMax >= boxMin && positionMax <= boxMax ||
-                            positionMin >= boxMin && positionMin <= boxMax ||
-                            positionMin < probePosition && positionMax > probePosition
+                            positionMax.xz >= boxMin.xz && positionMax.xz <= boxMax.xz ||
+                            positionMin.xz >= boxMin.xz && positionMin.xz <= boxMax.xz ||
+                            positionMin.xz < probePosition.xz && positionMax.xz > probePosition.xz
                             
                         ) && insideY)
                     {

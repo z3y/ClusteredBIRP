@@ -26,7 +26,14 @@ namespace CBIRP
 
         public void OnProcessScene(Scene scene, BuildReport report)
         {
-            
+            var objects = scene.GetRootGameObjects();
+            var probes = objects.SelectMany(x => x.GetComponentsInChildren<CBIRPReflectionProbe>(false));
+
+            foreach (var probe in probes)
+            {
+                probe.probe.bakedTexture = null;
+                probe.enabled = false;
+            }
         }
 
         public static void PackProbes(CBIRPManager target)
@@ -63,6 +70,7 @@ namespace CBIRP
                 {
                     cbirpProbe.cubeArrayIndex = i;
                     cbirpProbe.MarkDirty();
+                    cbirpProbe.OnValidate();
                 }
             }
 

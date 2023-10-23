@@ -48,6 +48,7 @@ namespace CBIRP
 
             if (destroyComponent)
             {
+                Destroy(probe);
                 Destroy(this);
             }
         }
@@ -73,7 +74,7 @@ namespace CBIRP
         }
 
 #if UNITY_EDITOR
-        private void OnValidate()
+        public void OnValidate()
         {
             if (!_initialized)
             {
