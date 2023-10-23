@@ -95,7 +95,7 @@ namespace CBIRP
         {
             await Task.Delay(1000);
 
-            if (Application.isPlaying)
+            if (Application.isPlaying || !_unityLight)
             {
                 return;
             }

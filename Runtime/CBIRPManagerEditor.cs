@@ -1,6 +1,7 @@
 ﻿#if !COMPILER_UDONSHARP && UNITY_EDITOR
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -13,6 +14,21 @@ namespace CBIRP
     public class CBIRPManagerEditor : IProcessSceneWithReport, IActiveBuildTargetChanged
     {
         public int callbackOrder => 0;
+
+        [InitializeOnLoadMethod]
+        public async static void InitliazeGlobals()
+        {
+            await Task.Delay(1000);
+
+            var manager = GameObject.FindObjectOfType<CBIRPManager>();
+            if (!manager)
+            {
+                return;
+            }
+
+            manager.OnValidate();
+        }
+
 
         public void OnActiveBuildTargetChanged(BuildTarget previousTarget, BuildTarget newTarget)
         {
