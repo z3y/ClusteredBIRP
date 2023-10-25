@@ -66,10 +66,10 @@ namespace CBIRP
     struct Light
     {
         float3 positionWS;
-        float range;
+        half range;
         bool spot;
         bool enabled;
-        float3 color;
+        half3 color;
         bool hasShadowmask;
         uint shadowmaskID;
         half3 direction;
