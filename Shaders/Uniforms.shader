@@ -193,7 +193,7 @@ Cull Off
                     float3 lightPosition = i.transformPosition.xyz;
 
                     
-                    half shadowMaskID = prop2.x;
+                    half shadowmaskData = prop2.x;
                     bool specularOnlyShadowmask = prop2.y > 0;
                     
                     float spotScale = 1;
@@ -219,7 +219,25 @@ Cull Off
 
                         float rangeScaled = range * range;
                         if (isSpot) rangeScaled = -rangeScaled;
-                        return float4(lightPosition, CBIRP_Packing::PackFloats(rangeScaled, shadowMaskID));
+
+                        bool shadowmaskEnabled = shadowmaskData >= 0; // 1 bit
+                        uint shadowmaskID = abs(shadowmaskData); // 2 bits
+                        uint cookieIndex = 0; // 4 bits
+                        uint hasCookie = false; // 1 bit
+
+                        uint unpackedData0b = 0x0;
+                        if (shadowmaskEnabled)
+                        {
+                            unpackedData0b |= 0x1;
+                            unpackedData0b |= (shadowmaskID << 1) & 0x6;
+                        }
+                        if (hasCookie)
+                        {
+                            unpackedData0b |= 0x8;
+                            unpackedData0b |= (cookieIndex << 4) & 0xf0;
+                        }
+                        
+                        return float4(lightPosition, CBIRP_Packing::PackFloatAndUint(rangeScaled, unpackedData0b));
                     }
                     else if (writeIndex == 1)
                     {

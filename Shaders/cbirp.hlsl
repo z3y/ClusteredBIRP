@@ -70,12 +70,15 @@ namespace CBIRP
         bool spot;
         bool enabled;
         float3 color;
-        bool shadowmask;
+        bool hasShadowmask;
         uint shadowmaskID;
         half3 direction;
         half spotOffset;
         half spotScale;
         bool specularOnly;
+
+        bool hasCookie;
+        uint cookieID;
 
         static Light DecodeLight(uint index)
         {
@@ -86,12 +89,15 @@ namespace CBIRP
             l.enabled = data0.w != 0;
             l.positionWS = data0.xyz;
             half unpackedData0a;
-            half unpackedData0b;
-            CBIRP_Packing::UnpackFloat(data0.w, unpackedData0a, unpackedData0b);
+            uint unpackedData0b;
+            CBIRP_Packing::UnpackFloatAndUint(data0.w, unpackedData0a, unpackedData0b);
             l.range = abs(unpackedData0a);
             l.spot = unpackedData0a < 0;
-            l.shadowmaskID = unpackedData0b;
-            l.shadowmask = unpackedData0b >= 0;
+
+            l.hasShadowmask = unpackedData0b & 0x1;
+            l.shadowmaskID = (unpackedData0b & 0x6) >> 1;
+            l.hasCookie = unpackedData0b & 0x8;
+            l.cookieID = (unpackedData0b & 0xf0) >> 4;
 
             half4 unpackedData1a;
             half4 unpackedData1b;
@@ -198,7 +204,7 @@ debug+=1;
                 }
 
                 #ifdef LIGHTMAP_ON
-                if (light.shadowmask)
+                if (light.hasShadowmask)
                 {
                     attenuation *= shadowmask[light.shadowmaskID];
                 }

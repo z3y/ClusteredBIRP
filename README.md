@@ -1,5 +1,5 @@
 # Clustered BIRP
-Experimental clustered lighting for the Unity Built-In Pipeline in VRChat.
+Clustered lighting for the Unity Built-In Pipeline in VRChat.
 
 ## Features
 
@@ -17,14 +17,15 @@ Experimental clustered lighting for the Unity Built-In Pipeline in VRChat.
 - Reflection probes don't break batching
 
 ## Limitations
-- Max number of lights per scene: 256 (hard coded at 128 to not waste uniforms, no one really needs this many anyway)
+- Max number of enabled lights per scene: 128
 - Max number of reflection probes per scene: 64
 - Max number of lights or probes in one cluster 16 (cant have more than 16 overlapping lights)
 - Clustering is done in world space around the player up to the far distance set on the main script. Keeping this range low as possible will give better clustering density
-- Clustering done only in XZ axis, worlds with a lot of verticallity cant have many lights stacked vertically. It is possible to use all 3 axis, but this approximation seemes better for most VRChat worlds and lights are still culled outside the far range on Y axis
+- Clustering done only in XZ axis, worlds with a lot of verticallity cant have many lights stacked vertically. It is possible to use all 3 axis, but this approximation seems better for most VRChat worlds and lights are still culled outside the far range on Y axis
 - All reflection probes have to be the same resolution in order to get packed into a tex2Darray
 - Having many dynamic transforms can affect performance because of Udon. Lights could also be tracked with a camera (used in the demo world), but setting global uniforms turned out to be faster than reading from a texture
-- Only 1 global shadow mask texture. Cant have multiple lightmaps unless implemented differently in a shader. Unity just doesnt pass the shadow mask texture in forward base unless its used. This could be forced with a shadow mask directional light, but then it wastes 1 channel of the shadow mask. If you need more lightmap density try out my [lightmap packer](https://github.com/z3y/XatlasLightmap).
+- Only 1 global shadow mask texture. Cant have multiple lightmaps unless implemented differently in a shader. Unity just doesn't pass the shadow mask texture in forward base unless its used. This could be forced with a shadow mask directional light, but then it wastes 1 channel of the shadow mask. If you need more lightmap density try out my [lightmap packer](https://github.com/z3y/XatlasLightmap).
+- This is still very new and experimental, in order to further improve it and expand with features, expect breaking changes
 
 # How to use
 - Swap shaders to a supported shader (a standard shader example included CBRIP/Standard - Mono SH enabled by default)

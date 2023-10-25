@@ -32,6 +32,7 @@ namespace CBIRP
         public MeshRenderer meshRenderer;
         private MaterialPropertyBlock _propertyBlock;
         private Light _unityLight;
+        [Tooltip("Automatically copied from the unity light")]
         [SerializeField] private int _shadowMaskID = -1;
 
         private int _Data0ID;
@@ -79,7 +80,7 @@ namespace CBIRP
             _data1.z = outerAngle;
             _data1.w = lightType;
 
-            _data2.x = _shadowMaskID;
+            _data2.x = shadowMask ? _shadowMaskID : -1;
             _data2.y = specularOnlyShadowmask ? 1f : 0f;
 
             _propertyBlock.SetVector(_Data0ID, _data0);

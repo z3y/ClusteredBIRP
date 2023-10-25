@@ -49,11 +49,7 @@
 
             float4 frag (v2f i) : SV_Target
             {
-                // sample the texture
                 uint4 col = asuint(_MainTex.Sample(sampler_MainTex, i.uv));
-                // apply fog
-                // return (col[1].x & 0x000000ff) != 0;
-                // if (col.w == 0xffffffff) return 0;
 
                 return saturate(col);
             }
