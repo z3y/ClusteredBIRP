@@ -72,7 +72,11 @@ namespace CBIRP
         public static void BakeAndPackProbes(CBIRPManager target, int bounces, int resolution)
         {
             var scene = SceneManager.GetActiveScene();
-            var probeDir = Path.Combine(Path.GetDirectoryName(scene.path), scene.name);
+            var probesDir = Path.Combine(Path.GetDirectoryName(scene.path), scene.name);
+            if (!Directory.Exists(probesDir))
+            {
+                Directory.CreateDirectory(probesDir);
+            }
             var probes = GameObject.FindObjectsOfType<CBIRPReflectionProbe>();
 
             for (int i = 0; i < bounces; i++)
@@ -80,7 +84,7 @@ namespace CBIRP
                 for (int j = 0; j < probes.Length; j++)
                 {
                     probes[j].probe.resolution = resolution;
-                    Lightmapping.BakeReflectionProbe(probes[j].probe, Path.Combine(probeDir, "ReflectionProbe-" + j + ".exr"));
+                    Lightmapping.BakeReflectionProbe(probes[j].probe, Path.Combine(probesDir, "ReflectionProbe-" + j + ".exr"));
                     probes[j].probe.MarkDirty();
                 }
                 PackProbes(target, probes);
@@ -130,7 +134,12 @@ namespace CBIRP
             var scenePath = SceneManager.GetActiveScene().path;
             var sceneName = Path.GetFileNameWithoutExtension(scenePath);
             var sceneDirectory = Path.GetDirectoryName(scenePath);
-            var path = Path.Combine(sceneDirectory, "ReflectionProbesArray-" + sceneName + ".asset");
+            var probesDir = Path.Combine(sceneDirectory, sceneName);
+            if (!Directory.Exists(probesDir))
+            {
+                Directory.CreateDirectory(probesDir);
+            }
+            var path = Path.Combine(probesDir, "ReflectionProbesArray" +  ".asset");
             AssetDatabase.CreateAsset(array, path);
             AssetDatabase.ImportAsset(path);
             var probes = AssetDatabase.LoadAssetAtPath<CubemapArray>(path);
