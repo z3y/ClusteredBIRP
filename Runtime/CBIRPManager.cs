@@ -1,6 +1,8 @@
 ﻿using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
+using UnityEngine.SceneManagement;
+using System.IO;
 
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
 using UnityEditor;
@@ -20,6 +22,7 @@ namespace CBIRP
         [SerializeField] private Camera _trackingCamera;
         [Tooltip("Enable updates to any of the light or probe variables at runtime (Position, Rotation, Color, Range etc). Disable to skip the additional camera used to track them")]
         [SerializeField] private bool _dynamicUpdates = true;
+        [Range(0, 5)] public int probeBounces = 1;
 
         private void Start()
         {
@@ -62,9 +65,11 @@ namespace CBIRP
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
-            if (GUILayout.Button("Pack Probes"))
+            if (GUILayout.Button("Bake And Pack Reflection Probes"))
             {
-                CBIRPManagerEditor.PackProbes((CBIRPManager)target);
+                var m = (CBIRPManager)target;
+                CBIRPManagerEditor.ClearProbes(m);
+                CBIRPManagerEditor.BakeAndPackProbes(m, m.probeBounces);
             }
         }
     }

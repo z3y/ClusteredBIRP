@@ -1,4 +1,5 @@
 ﻿#if !COMPILER_UDONSHARP && UNITY_EDITOR
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,6 +14,8 @@ namespace CBIRP
 {
     public class CBIRPManagerEditor : IProcessSceneWithReport, IActiveBuildTargetChanged
     {
+        private static object reflectionProbe;
+
         public int callbackOrder => 0;
 
         [InitializeOnLoadMethod]
@@ -60,26 +63,50 @@ namespace CBIRP
             }
         }
 
-        public static void PackProbes(CBIRPManager target)
+        public static CBIRPReflectionProbe[] GetAllProbeComponents()
+        {
+            var probeInstances = GameObject.FindObjectsOfType<CBIRPReflectionProbe>();
+            return probeInstances;
+        }
+
+        public static void BakeAndPackProbes(CBIRPManager target, int bounces)
+        {
+            var scene = SceneManager.GetActiveScene();
+            var probeDir = Path.Combine(Path.GetDirectoryName(scene.path), scene.name);
+            var probes = GameObject.FindObjectsOfType<CBIRPReflectionProbe>();
+
+            for (int i = 0; i < bounces; i++)
+            {
+                for (int j = 0; j < probes.Length; j++)
+                {
+                    Lightmapping.BakeReflectionProbe(probes[j].probe, Path.Combine(probeDir, "ReflectionProbe-" + j + ".exr"));
+                }
+                PackProbes(target, probes);
+            }
+        }
+        public static void ClearProbes(CBIRPManager manager)
+        {
+            manager.reflectionProbeArray = null;
+            manager.MarkDirty();
+            manager.OnValidate();
+        }
+        public static void PackProbes(CBIRPManager target, CBIRPReflectionProbe[] probeInstances)
         {
             // thx error mdl
             // https://github.com/Error-mdl/UnityReflectionProbeArrays/blob/master/ReflectionProbeArray/editor/ReflectionProbeArrayCreator.cs
-
-            var probeInstances = GameObject.FindObjectsOfType<CBIRPReflectionProbe>();
 
             if (probeInstances.Length == 0)
             {
                 return;
             }
 
-            var reflectionProbes = probeInstances.Select(x => x.GetComponent<ReflectionProbe>()).ToArray();
+            var referenceProbe = probeInstances[0].probe.texture as Cubemap;
+            var array = new CubemapArray(referenceProbe.width, referenceProbe.height, referenceProbe.format, true);
 
-            var referenceProbe = reflectionProbes[0].texture as Cubemap;
-            var array = new CubemapArray(referenceProbe.width, reflectionProbes.Length, referenceProbe.format, true);
-
-            for (int i = 0; i < reflectionProbes.Length; i++)
+            for (int i = 0; i < probeInstances.Length; i++)
             {
-                Texture probe = reflectionProbes[i].texture;
+                var reflectionProbe = probeInstances[i].probe;
+                Texture probe = reflectionProbe.texture;
 
                 for (int mip = 0; mip < referenceProbe.mipmapCount; mip++)
                 {
@@ -89,7 +116,7 @@ namespace CBIRP
                     }
                 }
 
-                var cbirpProbe = reflectionProbes[i].transform.GetComponent<CBIRPReflectionProbe>();
+                var cbirpProbe = reflectionProbe.transform.GetComponent<CBIRPReflectionProbe>();
                 if (cbirpProbe)
                 {
                     cbirpProbe.cubeArrayIndex = i;
@@ -101,7 +128,7 @@ namespace CBIRP
             var scenePath = SceneManager.GetActiveScene().path;
             var sceneName = Path.GetFileNameWithoutExtension(scenePath);
             var sceneDirectory = Path.GetDirectoryName(scenePath);
-            var path = Path.Combine(sceneDirectory, "CBIRP_ProbeArray_" + sceneName + ".asset");
+            var path = Path.Combine(sceneDirectory, "ReflectionProbesArray-" + sceneName + ".asset");
             AssetDatabase.CreateAsset(array, path);
             AssetDatabase.ImportAsset(path);
             var probes = AssetDatabase.LoadAssetAtPath<CubemapArray>(path);
