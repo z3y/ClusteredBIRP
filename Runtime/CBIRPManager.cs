@@ -23,6 +23,8 @@ namespace CBIRP
         [Tooltip("Enable updates to any of the light or probe variables at runtime (Position, Rotation, Color, Range etc). Disable to skip the additional camera used to track them")]
         [SerializeField] private bool _dynamicUpdates = true;
         [Range(0, 5)] public int probeBounces = 1;
+        public int probeResolution = 128;
+        //public int probeMultiSampling = 1;
 
         private void Start()
         {
@@ -69,7 +71,7 @@ namespace CBIRP
             {
                 var m = (CBIRPManager)target;
                 CBIRPManagerEditor.ClearProbes(m);
-                CBIRPManagerEditor.BakeAndPackProbes(m, m.probeBounces);
+                CBIRPManagerEditor.BakeAndPackProbes(m, m.probeBounces, m.probeResolution);
             }
         }
     }

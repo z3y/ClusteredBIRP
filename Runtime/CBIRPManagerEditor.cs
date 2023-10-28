@@ -69,7 +69,7 @@ namespace CBIRP
             return probeInstances;
         }
 
-        public static void BakeAndPackProbes(CBIRPManager target, int bounces)
+        public static void BakeAndPackProbes(CBIRPManager target, int bounces, int resolution)
         {
             var scene = SceneManager.GetActiveScene();
             var probeDir = Path.Combine(Path.GetDirectoryName(scene.path), scene.name);
@@ -79,7 +79,9 @@ namespace CBIRP
             {
                 for (int j = 0; j < probes.Length; j++)
                 {
+                    probes[j].probe.resolution = resolution;
                     Lightmapping.BakeReflectionProbe(probes[j].probe, Path.Combine(probeDir, "ReflectionProbe-" + j + ".exr"));
+                    probes[j].probe.MarkDirty();
                 }
                 PackProbes(target, probes);
             }
