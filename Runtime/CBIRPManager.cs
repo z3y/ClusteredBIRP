@@ -46,7 +46,7 @@ namespace CBIRP
         {
             SendCustomEventDelayedFrames(
                 isEnabled ? nameof(EnableDynamicUpdates) : nameof(DisableDynamicUpdates),
-                5, VRC.Udon.Common.Enums.EventTiming.Update);
+                1, VRC.Udon.Common.Enums.EventTiming.Update);
         }
         public void DisableDynamicUpdates() => _trackingCamera.gameObject.SetActive(false);
         public void EnableDynamicUpdates() => _trackingCamera.gameObject.SetActive(true);
