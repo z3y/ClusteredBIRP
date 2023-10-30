@@ -13,11 +13,16 @@ using System.Threading.Tasks;
 
 namespace CBIRP
 {
+    public enum LightType : int
+    {
+        Point,
+        Spot
+    }
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
     public class CBIRPLight : UdonSharpBehaviour
     {
         public bool destroyComponent = true;
-        public int lightType = 0;
+        public LightType lightType = LightType.Point;
 
         public Color color = Color.white;
         public float intensity = 1f;
@@ -78,7 +83,7 @@ namespace CBIRP
             _data1.x = range;
             _data1.y = innerAnglePercent;
             _data1.z = outerAngle;
-            _data1.w = lightType;
+            _data1.w = lightType == LightType.Point ? 0 : 1;
 
             _data2.x = shadowMask ? _shadowMaskID : -1;
             _data2.y = specularOnlyShadowmask ? 1f : 0f;
@@ -166,7 +171,7 @@ namespace CBIRP
                 bakeryLight.angle = l.outerAngle;
                 bakeryLight.innerAngle = l.innerAnglePercent;
                 bakeryLight.intensity = l.intensity;
-                bakeryLight.projMode = l.lightType == 1 ?
+                bakeryLight.projMode = l.lightType == LightType.Point ?
                     BakeryPointLight.ftLightProjectionMode.Omni :
                     BakeryPointLight.ftLightProjectionMode.Cone;
                 bakeryLight.cutoff = l.range;
