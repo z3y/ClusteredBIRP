@@ -12,26 +12,8 @@ Texture2D _Udon_CBIRP_ShadowMask;
 #include "Filament.hlsl"
 #include "Packing.hlsl"
 
-    // uint4 indices = _Udon_CBIRP_Clusters[clusterIndex]; \/ this was slower
-// #define CBIRP_CLUSTER_START(clusterIndex) \
-//     uint indices[4] = {_Udon_CBIRP_Clusters[clusterIndex].x, _Udon_CBIRP_Clusters[clusterIndex].y, _Udon_CBIRP_Clusters[clusterIndex].z, _Udon_CBIRP_Clusters[clusterIndex].w}; \
-//     uint index = indices[0] & 0x000000ff; \
-//     uint offset = 0; \
-//     [loop] while (true) { \
-//         UNITY_BRANCH if (index == 0) { break; } \
-//
-// #define CBIRP_CLUSTER_END \
-//         offset += 8; \
-//         uint mask = (0x000000ff << offset); \
-//         uint componentIndex = offset / 32; \
-//         index = (indices[componentIndex] & mask) >> offset; \
-//         index = offset < 128 ? index : 0; \
-//     } \
-//
-
-
-#define CBIR_TYPE_LIGHT 0
-#define CBIR_TYPE_PROBE 1
+#define CBIRP_TYPE_LIGHT 0
+#define CBIRP_TYPE_PROBE 1
 #define CBIRP_CLUSTER_START(cluster, type) \
     uint4 flags4x = _Udon_CBIRP_Clusters[uint2(type ? 3 : 0, cluster.x)]; \
     uint4 flags4y = _Udon_CBIRP_Clusters[uint2(type ? 4 : 1, cluster.y)]; \
@@ -206,7 +188,7 @@ namespace CBIRP
         half clampedRoughness = max(roughness * roughness, 0.002);
         half debug = 0;
 
-        CBIRP_CLUSTER_START(cluster, CBIR_TYPE_LIGHT)
+        CBIRP_CLUSTER_START(cluster, CBIRP_TYPE_LIGHT)
 
 debug+=1;
             Light light = Light::DecodeLight(index);
@@ -348,7 +330,7 @@ debug+=1;
 
         half4 decodeInstructions = 0;
 
-        CBIRP_CLUSTER_START(cluster, CBIR_TYPE_PROBE)
+        CBIRP_CLUSTER_START(cluster, CBIRP_TYPE_PROBE)
             ReflectionProbe probe = ReflectionProbe::DecodeReflectionProbe(index);
             debug += 1;
 
