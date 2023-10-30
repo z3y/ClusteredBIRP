@@ -342,8 +342,7 @@ ENDHLSL
                 uint3 cluster = CBIRP::GetCluster(positionWS);
                 half3 light = 0;
                 CBIRP::ComputeLights(cluster, positionWS, normalWS, viewDirectionWS, f0, NoV, m.roughness, shadowmask, light, specular);
-                // half3 probes = CBIRP::SampleProbes(cluster, reflectVector, positionWS, m.roughness);
-                half3 probes = 0;
+                half3 probes = CBIRP::SampleProbes(cluster, reflectVector, positionWS, m.roughness);
 
                 #ifdef _CBIRP_DEBUG
                     return float3(_CBIRPDebugMode ? probes : light).xyzz;
