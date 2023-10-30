@@ -22,10 +22,10 @@ Texture2D _Udon_CBIRP_ShadowMask;
     uint flagsArr[4] = {flags4.x, flags4.y, flags4.z, flags4.w}; \
     uint component = 0; \
     while (component < 4) { \
+        [branch] if (flagsArr[component] == 0) { component++; continue; } \
         uint index = firstbitlow(flagsArr[component]); \
-        if (index == ~0) { component++; continue; } \
-        index += 32 * component; \
         flagsArr[component] ^= 0x1 << index; \
+        index += 32 * component; \
 
 #define CBIRP_CLUSTER_END \
     } \
