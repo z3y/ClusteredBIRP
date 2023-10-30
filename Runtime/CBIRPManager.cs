@@ -36,7 +36,7 @@ namespace CBIRP
         {
             uniforms.material.SetFloat("_Far", cullFar);
             VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_Uniforms"), uniforms);
-            VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_Culling"), clustering);
+            VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_Clusters"), clustering);
             VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_ShadowMask"), shadowmask);
             VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_ReflectionProbes"), reflectionProbeArray);
             //VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_SkyProbe"), skyProbe);

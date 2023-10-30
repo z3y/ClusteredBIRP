@@ -27,7 +27,7 @@
         [HideInInspector] [NonModifiableTextureData] [NoScaleOffset]_DFG ("DFG", 2D) = "white" {}
 
         [HideInInspector] [NonModifiableTextureData] [NoScaleOffset] _Udon_CBIRP_Uniforms ("Uniforms", 2D) = "black" {}
-        [HideInInspector] [NonModifiableTextureData] [NoScaleOffset] _Udon_CBIRP_Culling ("Clustering", 2D) = "black" {}
+        [HideInInspector] [NonModifiableTextureData] [NoScaleOffset] _Udon_CBIRP_Clusters ("Clustering", 2D) = "black" {}
 
         [ToggleOff(_BAKERY_MONOSH_OFF)] _BakeryMonoSH ("Bakery Mono SH", Float) = 1
 
@@ -339,10 +339,11 @@ ENDHLSL
                     half4 shadowmask = 1;
                 #endif
 
-                uint2 cullIndex = CBIRP::CullIndex(positionWS);
+                uint3 cluster = CBIRP::GetCluster(positionWS);
                 half3 light = 0;
-                CBIRP::ComputeLights(cullIndex, positionWS, normalWS, viewDirectionWS, f0, NoV, m.roughness, shadowmask, light, specular);
-                half3 probes = CBIRP::SampleProbes(cullIndex, reflectVector, positionWS, m.roughness);
+                CBIRP::ComputeLights(cluster, positionWS, normalWS, viewDirectionWS, f0, NoV, m.roughness, shadowmask, light, specular);
+                // half3 probes = CBIRP::SampleProbes(cluster, reflectVector, positionWS, m.roughness);
+                half3 probes = 0;
 
                 #ifdef _CBIRP_DEBUG
                     return float3(_CBIRPDebugMode ? probes : light).xyzz;
