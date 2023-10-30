@@ -14,17 +14,22 @@ Texture2D _Udon_CBIRP_ShadowMask;
 
 #define CBIRP_TYPE_LIGHT 0
 #define CBIRP_TYPE_PROBE 1
+static uint cbirpTempIndexable[4];
+
 #define CBIRP_CLUSTER_START(cluster, type) \
     uint4 flags4x = _Udon_CBIRP_Clusters[uint2(type ? 3 : 0, cluster.x)]; \
     uint4 flags4y = _Udon_CBIRP_Clusters[uint2(type ? 4 : 1, cluster.y)]; \
     uint4 flags4z = _Udon_CBIRP_Clusters[uint2(type ? 5 : 2, cluster.z)]; \
     uint4 flags4 = flags4x & flags4y & flags4z; \
-    uint flagsArr[4] = {flags4.x, flags4.y, flags4.z, flags4.w}; \
+    cbirpTempIndexable[0] = flags4.x; \
+    cbirpTempIndexable[1] = flags4.y; \
+    cbirpTempIndexable[2] = flags4.z; \
+    cbirpTempIndexable[3] = flags4.w; \
     uint component = 0; \
     while (component < 4) { \
-        [branch] if (flagsArr[component] == 0) { component++; continue; } \
-        uint index = firstbitlow(flagsArr[component]); \
-        flagsArr[component] ^= 0x1 << index; \
+        [branch] if (cbirpTempIndexable[component] == 0) { component++; continue; } \
+        uint index = firstbitlow(cbirpTempIndexable[component]); \
+        cbirpTempIndexable[component] ^= 0x1 << index; \
         index += 32 * component; \
 
 #define CBIRP_CLUSTER_END \
