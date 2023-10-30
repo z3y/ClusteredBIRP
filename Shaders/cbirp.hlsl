@@ -29,32 +29,19 @@ Texture2D _Udon_CBIRP_ShadowMask;
 //     } \
 //
 
-uint CbirpFirstBitLow(uint4 flags)
-{
-    #if (SHADER_TARGET < 45) || defined(SHADER_API_MOBILE)
-        // http://graphics.stanford.edu/~seander/bithacks.html#ZerosOnRightFloatCast
-        return (asuint((float)(flags & asuint(-asint(flags)))) >> 23) - 0x7F;
-    #else
-        return firstbitlow(flags);
-    #endif
-}
 
-#if (SHADER_TARGET < 45) || defined(SHADER_API_MOBILE)
-    #define FIRST_BIT_LOW_NONE -127
-#else
-    #define FIRST_BIT_LOW_NONE ~0
-#endif
-
-#define CBIRP_CLUSTER_START(cluster, offset) \
-    uint4 flags4x = _Udon_CBIRP_Clusters[uint2(0 + offset, cluster.x)]; \
-    uint4 flags4y = _Udon_CBIRP_Clusters[uint2(1 + offset, cluster.y)]; \
-    uint4 flags4z = _Udon_CBIRP_Clusters[uint2(2 + offset, cluster.z)]; \
+#define CBIR_TYPE_LIGHT 0
+#define CBIR_TYPE_PROBE 1
+#define CBIRP_CLUSTER_START(cluster, type) \
+    uint4 flags4x = _Udon_CBIRP_Clusters[uint2(type ? 3 : 0, cluster.x)]; \
+    uint4 flags4y = _Udon_CBIRP_Clusters[uint2(type ? 4 : 1, cluster.y)]; \
+    uint4 flags4z = _Udon_CBIRP_Clusters[uint2(type ? 5 : 2, cluster.z)]; \
     uint4 flags4 = flags4x & flags4y & flags4z; \
     uint flagsArr[4] = {flags4.x, flags4.y, flags4.z, flags4.w}; \
     uint component = 0; \
     while (component < 4) { \
-        uint index = CbirpFirstBitLow(flagsArr[component]); \
-        if (index == FIRST_BIT_LOW_NONE) { component++; continue; } \
+        uint index = firstbitlow(flagsArr[component]); \
+        if (index == ~0) { component++; continue; } \
         index += 32 * component; \
         flagsArr[component] ^= 0x1 << index; \
 
@@ -219,7 +206,7 @@ namespace CBIRP
         half clampedRoughness = max(roughness * roughness, 0.002);
         half debug = 0;
 
-        CBIRP_CLUSTER_START(cluster, 0)
+        CBIRP_CLUSTER_START(cluster, CBIR_TYPE_LIGHT)
 
 debug+=1;
             Light light = Light::DecodeLight(index);
@@ -352,11 +339,6 @@ debug+=1;
     }
 
 
-    uint ProbesClusterOffset()
-    {
-        return 3;
-    }
-
     half3 SampleProbes(uint3 cluster, half3 reflectVector, float3 positionWS, half perceptualRoughness)
     {
         half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
@@ -366,9 +348,7 @@ debug+=1;
 
         half4 decodeInstructions = 0;
 
-        uint offset = ProbesClusterOffset();
-
-        CBIRP_CLUSTER_START(cluster, offset)
+        CBIRP_CLUSTER_START(cluster, CBIR_TYPE_PROBE)
             ReflectionProbe probe = ReflectionProbe::DecodeReflectionProbe(index);
             debug += 1;
 
