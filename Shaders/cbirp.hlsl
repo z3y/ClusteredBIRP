@@ -53,7 +53,7 @@ uint CbirpFirstBitLow(uint4 flags)
     uint flagsArr[4] = {flags4.x, flags4.y, flags4.z, flags4.w}; \
     uint index = FIRST_BIT_LOW_NONE; \
     uint component = 0; \
-    while (any(flags4 != 0x0) && component < 4) { \
+    while (component < 4) { \
         uint index = CbirpFirstBitLow(flagsArr[component]); \
         if (index == FIRST_BIT_LOW_NONE) { component++; continue; } \
         index += 32 * component; \
