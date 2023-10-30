@@ -10,7 +10,7 @@ CODE_START
     #include "Packages/z3y.clusteredbirp/Shaders/CBIRP.hlsl"
     void ModifyLightingCBIRP(inout GIData giData, Varyings IN, ShaderData sd, inout SurfaceDescription surfaceDescription)
     {
-        uint2 cullIndex = CBIRP::CullIndex(IN.positionWS);
+        uint3 cluster = CBIRP::GetCluster(IN.positionWS);
 
  #ifdef LIGHTMAP_ON
                     half4 shadowmask = _Udon_CBIRP_ShadowMask.SampleLevel(custom_bilinear_clamp_sampler, IN.lightmapUV, 0);
@@ -21,10 +21,10 @@ CODE_START
 
         giData.Light = 0;
         giData.Specular = 0;
-        CBIRP::ComputeLights(cullIndex, IN.positionWS, sd.normalWS, sd.viewDirectionWS, sd.f0, sd.NoV, sd.perceptualRoughness, shadowmask, giData.Light, giData.Specular);
+        CBIRP::ComputeLights(cluster, IN.positionWS, sd.normalWS, sd.viewDirectionWS, sd.f0, sd.NoV, sd.perceptualRoughness, shadowmask, giData.Light, giData.Specular);
         giData.Specular *= sd.energyCompensation;
 
-        giData.Reflections = CBIRP::SampleProbes(cullIndex, sd.reflectionDirection, IN.positionWS, sd.perceptualRoughness).xyz * sd.brdf * sd.energyCompensation * sd.specularOcclusion;
+        giData.Reflections = CBIRP::SampleProbes(cluster, sd.reflectionDirection, IN.positionWS, sd.perceptualRoughness).xyz * sd.brdf * sd.energyCompensation * sd.specularOcclusion;
     }
 
     #define ModifyLighting ModifyLightingCBIRP
