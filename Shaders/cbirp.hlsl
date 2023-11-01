@@ -21,14 +21,16 @@ Texture2D _Udon_CBIRP_ShadowMask;
     uint4 flags4z = _Udon_CBIRP_Clusters[uint2(type ? 5 : 2, cluster.z)]; \
     uint4 flags4 = flags4x & flags4y & flags4z; \
     uint flags = flags4.x; \
-    uint component = 0; \
+    uint offset = 0; \
     while (true) { \
-        [branch] if (component >= 3) break; \
-        [branch] if (flags == 0) { flags = component == 0 ? flags4.y : (component == 1 ? flags4.z : flags4.w); component++;} \
-        else { \
+        [branch] if (offset == 128) break; \
+        [branch] if (flags == 0) { \
+            offset += 32; \
+            flags = offset == 32 ? flags4.y : (offset == 64 ? flags4.z : flags4.w); \
+        } else { \
         uint index = firstbitlow(flags); \
         flags ^= 0x1 << index; \
-        index += 32 * component; \
+        index += offset; \
 
 #define CBIRP_CLUSTER_END \
     }} \

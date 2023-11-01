@@ -42,6 +42,7 @@
                 float positionMax = position;
 
                 uint flags[4] = { 0, 0, 0, 0 };
+                uint4 writeMask = uint4(1,0,0,0);
 
                 [loop]
                 for (uint index = 1; index < CBIRP_MAX_LIGHTS; index++)
