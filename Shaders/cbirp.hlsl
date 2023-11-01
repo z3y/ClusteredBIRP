@@ -15,15 +15,17 @@ Texture2D _Udon_CBIRP_ShadowMask;
 #define CBIRP_TYPE_LIGHT 0
 #define CBIRP_TYPE_PROBE 1
 
-#define CBIRP_CLUSTER_START_LIGHT(cluster) \
-    uint4 flags4x = _Udon_CBIRP_Clusters[uint2(0, cluster.x)]; \
-    uint4 flags4y = _Udon_CBIRP_Clusters[uint2(1, cluster.y)]; \
-    uint4 flags4z = _Udon_CBIRP_Clusters[uint2(2, cluster.z)]; \
+#define CBIRP_CLUSTER_START(cluster, type) \
+    bool isLight = type == CBIRP_TYPE_LIGHT; \
+    uint4 flags4x = _Udon_CBIRP_Clusters[uint2(isLight ? 0 : 3, cluster.x)]; \
+    uint4 flags4y = _Udon_CBIRP_Clusters[uint2(isLight ? 1 : 4, cluster.y)]; \
+    uint4 flags4z = _Udon_CBIRP_Clusters[uint2(isLight ? 2 : 5, cluster.z)]; \
     uint4 flags4 = flags4x & flags4y & flags4z; \
     uint flags = flags4.x; \
     uint offset = 0; \
+    uint maxOffset = isLight ? 128 : 32; \
     [loop] while (true) { \
-        [branch] if (offset == 128) break; \
+        [branch] if (offset == maxOffset) break; \
         [branch] if (flags == 0) { \
             offset += 32; \
             flags = offset == 32 ? flags4.y : (offset == 64 ? flags4.z : flags4.w); \
@@ -32,21 +34,7 @@ Texture2D _Udon_CBIRP_ShadowMask;
             flags ^= 0x1 << index; \
             index += offset; \
 
-#define CBIRP_CLUSTER_END_LIGHT \
-    }} \
-
-#define CBIRP_CLUSTER_START_PROBE(cluster) \
-    uint4 flags4x = _Udon_CBIRP_Clusters[uint2(3, cluster.x)]; \
-    uint4 flags4y = _Udon_CBIRP_Clusters[uint2(4, cluster.y)]; \
-    uint4 flags4z = _Udon_CBIRP_Clusters[uint2(5, cluster.z)]; \
-    uint flags = flags4x.x & flags4y.x & flags4z.x; \
-    [loop] while (true) { \
-        [branch] if (flags == 0) break; \
-        else { \
-        uint index = firstbitlow(flags); \
-        flags ^= 0x1 << index; \
-
-#define CBIRP_CLUSTER_END_PROBE \
+#define CBIRP_CLUSTER_END \
     }} \
 
 // uniform float _Udon_CBIRP_CullFar;
@@ -207,7 +195,7 @@ namespace CBIRP
         half clampedRoughness = max(roughness * roughness, 0.002);
         half debug = 0;
 
-        CBIRP_CLUSTER_START_LIGHT(cluster)
+        CBIRP_CLUSTER_START(cluster, CBIRP_TYPE_LIGHT)
 
 debug+=1;
             Light light = Light::DecodeLight(index);
@@ -267,7 +255,7 @@ debug+=1;
                 }
 
             }
-        CBIRP_CLUSTER_END_LIGHT
+        CBIRP_CLUSTER_END
 
         #ifdef _CBIRP_DEBUG
             // diffuse = Heatmap((debug) / 16.);
@@ -350,7 +338,7 @@ debug+=1;
 
         half4 decodeInstructions = 0;
 
-        CBIRP_CLUSTER_START_PROBE(cluster)
+        CBIRP_CLUSTER_START(cluster, CBIRP_TYPE_PROBE)
             ReflectionProbe probe = ReflectionProbe::DecodeReflectionProbe(index);
             debug += 1;
 
@@ -367,7 +355,7 @@ debug+=1;
                 irradiance += weight * DecodeHDREnvironment(encodedIrradiance, half4(probe.intensity, decodeInstructions.yzw));
             }
 
-        CBIRP_CLUSTER_END_PROBE
+        CBIRP_CLUSTER_END
 
         #ifdef CBIRP_SKYPROBE
         UNITY_BRANCH
