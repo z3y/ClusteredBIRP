@@ -22,15 +22,15 @@ Texture2D _Udon_CBIRP_ShadowMask;
     uint4 flags4 = flags4x & flags4y & flags4z; \
     uint flags = flags4.x; \
     uint offset = 0; \
-    while (true) { \
+    [loop] while (true) { \
         [branch] if (offset == 128) break; \
         [branch] if (flags == 0) { \
             offset += 32; \
             flags = offset == 32 ? flags4.y : (offset == 64 ? flags4.z : flags4.w); \
         } else { \
-        uint index = firstbitlow(flags); \
-        flags ^= 0x1 << index; \
-        index += offset; \
+            uint index = firstbitlow(flags); \
+            flags ^= 0x1 << index; \
+            index += offset; \
 
 #define CBIRP_CLUSTER_END \
     }} \
