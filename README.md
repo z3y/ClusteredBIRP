@@ -18,7 +18,7 @@ Clustered lighting for the Unity Built-In Pipeline in VRChat.
 
 ## Limitations
 - Max number of enabled lights per world: 128
-- Max number of enabled reflection probes per world : 64
+- Max number of enabled reflection probes per world : 32
 - There is no limitation when it comes to number of lights in a single cluster, however having many lights with intersecting ranges is less performant
 - Spotlights currently take up as much rage in clusters as point lights
 - Clustering is done in world space up to the ±far distance (far set on the main script) from the player position. Clustering is usually done in frustum space, but we don't have control over every camera in VRChat so this way it works on the stream camera as well. Keeping this range low as possible will give better clustering density

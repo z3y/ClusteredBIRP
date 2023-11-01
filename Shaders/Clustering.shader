@@ -102,7 +102,7 @@
                 float positionMin = position - CBIRP_VOXELS_SIZE;
                 float positionMax = position;
 
-                uint flags[4] = { 0, 0, 0, 0 };
+                uint4 flags = 0;
 
                 [loop]
                 for (uint index = 1; index < CBIRP_MAX_PROBES; index++)
@@ -121,12 +121,11 @@
                     if (positionMax > boxMin && positionMax < boxMax ||
                         positionMin > boxMin && positionMin < boxMax)
                     {
-                        uint component = index / 32;
-                        flags[component] |= 0x1 << (index - (component * 32));
+                        flags.x |= 0x1 << (index);
                     }
                 }
                 
-                return uint4(flags[0], flags[1], flags[2], flags[3]);
+                return flags;
             }
             ENDCG
         }
