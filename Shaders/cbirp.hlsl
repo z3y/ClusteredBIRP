@@ -22,14 +22,16 @@ Texture2D _Udon_CBIRP_ShadowMask;
     uint4 flags4 = flags4x & flags4y & flags4z; \
     uint flags = flags4.x; \
     uint component = 0; \
-    while (component < 3) { \
-        [branch] if (flags == 0) { flags = component == 0 ? flags4.y : (component == 1 ? flags4.z : flags4.w); component++; continue; } \
+    while (true) { \
+        [branch] if (component >= 3) break; \
+        [branch] if (flags == 0) { flags = component == 0 ? flags4.y : (component == 1 ? flags4.z : flags4.w); component++;} \
+        else { \
         uint index = firstbitlow(flags); \
         flags ^= 0x1 << index; \
         index += 32 * component; \
 
 #define CBIRP_CLUSTER_END \
-    } \
+    }} \
 
 // uniform float _Udon_CBIRP_CullFar;
 // uniform float4 _Udon_CBIRP_PlayerCamera;
@@ -219,12 +221,13 @@ debug+=1;
                 }
                 #endif
 
+                attenuation *= NoL;
                 debug += attenuation > 0;
-
+                
                 UNITY_BRANCH
-                if (attenuation > 0 && NoL > 0)
+                if (attenuation > 0)
                 {
-                    half3 currentDiffuse = attenuation * light.color * NoL;
+                    half3 currentDiffuse = attenuation * light.color;
 
                     float3 halfVector = CBIRP::SafeNormalize(L + viewDirectionWS);
                     half LoH = saturate(dot(L, halfVector));
