@@ -12,13 +12,8 @@
 // #define CBIRP_PLAYER_POS _WorldSpaceCameraPos.xyz
 // #define CBIRP_PLAYER_POS _Udon_CBIRP_PlayerCamera.xyz
 
-#ifdef CBIRP_LOW
-    #define CBIRP_PLAYER_POS _WorldSpaceCameraPos.xyz
-    #define CBIRP_CULL_FAR _Udon_CBIRP_Far
-#else // this is only needed to fix an issue with the stream camera
-    #define CBIRP_PLAYER_POS _Udon_CBIRP_Uniforms[uint2(0,0)].xyz
-    #define CBIRP_CULL_FAR _Udon_CBIRP_Uniforms[uint2(0,0)].w
-#endif
+#define CBIRP_PLAYER_POS _Udon_CBIRP_Uniforms[uint2(0,0)].xyz
+#define CBIRP_CULL_FAR _Udon_CBIRP_Uniforms[uint2(0,0)].w
 
 
 #include "ConstantsGenerated.hlsl"
