@@ -31,7 +31,7 @@
             {
                 float voxel_size = CBIRP_VOXELS_SIZE;
                 uint2 uv_scaled = uint2(i.localTexcoord.xy * CBIRP_CULLING_SIZE);
-                uint dimension = uint(i.localTexcoord.x * 4);
+                uint dimension = uint(i.localTexcoord.x * 3);
                 float position = uv_scaled.y;
 
                 position *= CBIRP_VOXELS_SIZE;
@@ -69,7 +69,7 @@
                         flags[component] |= 0x1 << (index - (component * 32));
                     }
                 }
-                
+
                 return uint4(flags[0], flags[1], flags[2], flags[3]);
             }
             ENDCG
@@ -91,15 +91,15 @@
             {
                 float voxel_size = CBIRP_VOXELS_SIZE;
                 uint2 uv_scaled = uint2(i.localTexcoord.xy * CBIRP_CULLING_SIZE);
-                uint dimension = uint(i.localTexcoord.x * 4);
-                float position = uv_scaled.y;
+                //uint dimension = uint(i.localTexcoord.x * 4);
+                float3 position = uv_scaled.y;
 
                 position *= CBIRP_VOXELS_SIZE;
                 position -= CBIRP_CULL_FAR - CBIRP_VOXELS_SIZE;
-                position += CBIRP_PLAYER_POS[dimension];
+                position += CBIRP_PLAYER_POS;
 
-                float positionMin = position - CBIRP_VOXELS_SIZE;
-                float positionMax = position;
+                float3 positionMin = position - CBIRP_VOXELS_SIZE;
+                float3 positionMax = position;
 
                 uint4 flags = 0;
 
@@ -113,17 +113,28 @@
                         break;
                     }
 
-                    float probePosition = probe.positionWS[dimension];
-                    float boxMin = probe.boxMin[dimension];
-                    float boxMax = probe.boxMax[dimension];
+                    float3 probePosition = probe.positionWS;
+                    float3 boxMin = probe.boxMin;
+                    float3 boxMax = probe.boxMax;
 
-                    if (positionMax > boxMin && positionMax < boxMax ||
-                        positionMin > boxMin && positionMin < boxMax)
+                    if (positionMax.x > boxMin.x && positionMax.x < boxMax.x ||
+                        positionMin.x > boxMin.x && positionMin.x < boxMax.x)
                     {
                         flags.x |= 0x1 << (index);
                     }
+                    if (positionMax.y > boxMin.y && positionMax.y < boxMax.y ||
+                        positionMin.y > boxMin.y && positionMin.y < boxMax.y)
+                    {
+                        flags.y |= 0x1 << (index);
+                    }
+                    if (positionMax.z > boxMin.z && positionMax.z < boxMax.z ||
+                        positionMin.z > boxMin.z && positionMin.z < boxMax.z)
+                    {
+                        flags.z |= 0x1 << (index);
+                    }
                 }
                 
+
                 return flags;
             }
             ENDCG

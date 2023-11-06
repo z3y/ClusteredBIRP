@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: CBIRPReflectionProbe
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 47beab666ce76aa47aaca52d948634cf,
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 2cb8794cf72572042bf76e67a2d3e34a,
     type: 2}
   udonAssembly: 
   assemblyError: 
