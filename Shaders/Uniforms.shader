@@ -29,11 +29,6 @@ Cull Off
             #include "Constants.hlsl"
             #include "Packing.hlsl"
 
-            bool IsOrtho()
-            {
-                return unity_OrthoParams.w == 1 || UNITY_MATRIX_P[3][3] == 1;
-            }
-
             UNITY_INSTANCING_BUFFER_START(Props)
                 UNITY_DEFINE_INSTANCED_PROP(float4, _Data0)
                 UNITY_DEFINE_INSTANCED_PROP(float4, _Data1)
@@ -101,8 +96,8 @@ Cull Off
 
                 o.vertex = uv;
 
-
-                o.vertex *= IsOrtho(); // only needed for scene view 
+                bool isTrackerCam = _ProjectionParams.y == -0.0625;
+                o.vertex *= isTrackerCam;
 
                 o.direction = -mul((float3x3)UNITY_MATRIX_M, v.normalOS);
 
