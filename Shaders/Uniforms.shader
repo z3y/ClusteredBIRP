@@ -145,28 +145,20 @@ Cull Off
                 float3 probeSize = prop2.xyz * 0.5;
 
                 #ifdef _REFLECTION_PROBE
-                if (writeIndex == 0)
-                {
-                    return float4(i.transformPosition.xyz, prop0.w);
-                }
-                if (writeIndex == 1)
-                {
-                    float4 unpackedData1a;
-                    float4 unpackedData1b;
-                    unpackedData1b.xyz = probeCenter;
-                    unpackedData1a.w = prop0.y > 0 ? prop0.x : -prop0.x;
-                    unpackedData1b.w = prop0.z;
-                    unpackedData1a.xyz = probeSize;
-                    return CBIRP_Packing::PackFloats(unpackedData1a, unpackedData1b);
-                }
-                if (writeIndex == 2)
-                {
-                    return 0;
-                }
-                if (writeIndex == 3)
-                {
-                    return 0;
-                }
+                    if (writeIndex == 0)
+                    {
+                        return float4(i.transformPosition.xyz, prop0.w);
+                    }
+                    else
+                    {
+                        float4 unpackedData1a;
+                        float4 unpackedData1b;
+                        unpackedData1b.xyz = probeCenter;
+                        unpackedData1a.w = prop0.y > 0 ? prop0.x : -prop0.x;
+                        unpackedData1b.w = prop0.z;
+                        unpackedData1a.xyz = probeSize;
+                        return CBIRP_Packing::PackFloats(unpackedData1a, unpackedData1b);
+                    }
                 #else // LIGHTS
                     half range = prop1.x;
                     half innerAnglePercent = prop1.g;
@@ -212,7 +204,7 @@ Cull Off
                             lightPosition.z += sin((_Time.x  + (index * .02))  * 50);
                         #endif
 
-                        float rangeScaled = range * range;
+                        float rangeScaled = max(0.1, range * range);
                         if (isSpot) rangeScaled = -rangeScaled;
 
                         bool shadowmaskEnabled = shadowmaskData >= 0; // 1 bit
@@ -234,26 +226,16 @@ Cull Off
                         
                         return float4(lightPosition, CBIRP_Packing::PackFloatAndUint(rangeScaled, unpackedData0b));
                     }
-                    else if (writeIndex == 1)
+                    else
                     {
                         float4 unpackedData1a;
                         float4 unpackedData1b;
-                        unpackedData1b.xyz = normalize(i.direction);
+                        unpackedData1b.xyz = normalize(i.direction + 0.001);
                         unpackedData1a.w = specularOnlyShadowmask ? -spotScale : spotScale;
                         unpackedData1b.w = spotOffset;
                         unpackedData1a.xyz = color * intensity;
                         return CBIRP_Packing::PackFloats(unpackedData1a, unpackedData1b);
-                        // return float4(color.rgb * intensity, shadowMaskID);
-
                     }
-                    // else if (writeIndex == 2)
-                    // {
-                    //     // float4 packedData4a = normalize(i.direction);
-                    //     // float4 packedData4b;
-                    //     // UnpackFloat(data2, packedData4a, packedData4b);
-                    //     return 0;
-                    //     // return float4(, PackFloats(spotScale, spotOffset));
-                    // }
 
                 #endif
 

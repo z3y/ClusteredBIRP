@@ -46,10 +46,6 @@ uniform uint _Udon_CBIRP_DummyZero;
 #define CBIRP_CLUSTER_END_PROBE \
     } \
 
-// uniform float _Udon_CBIRP_CullFar;
-// uniform float4 _Udon_CBIRP_PlayerCamera;
-// uniform float4 _Udon_CBIRP_ProbeDecodeInstructions;
-
 namespace CBIRP
 {
     // from filament
@@ -98,6 +94,8 @@ namespace CBIRP
         bool hasCookie;
         uint cookieID;
 
+        half spotAngle;
+
         static Light DecodeLight(uint index)
         {
             Light l = (Light)0;
@@ -125,6 +123,8 @@ namespace CBIRP
             l.direction = unpackedData1b.xyz;
             l.spotScale = abs(unpackedData1a.w);
             l.spotOffset = unpackedData1b.w;
+
+            l.spotAngle = acos(-l.spotOffset / l.spotScale);
 
             l.specularOnly = unpackedData1a.w < 0;
 

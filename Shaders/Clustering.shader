@@ -27,6 +27,15 @@
             #include "CBIRP.hlsl"
             #include "UnityCustomRenderTexture.cginc"
 
+            // https://iquilezles.org/articles/diskbbox/
+            float2 SpotMinMax(float3 pa, float3 pb, float ra, float rb, uint dim)
+            {
+                float3 a = pb - pa;
+                float3 e = sqrt( 1.0 - a*a / dot(a,a) );
+                return float2(min( pa - e*ra, pb - e*rb)[dim],
+                              max( pa + e*ra, pb + e*rb)[dim]);
+            }
+
             uint4 frag (v2f_customrendertexture i) : SV_Target
             {
                 float voxel_size = CBIRP_VOXELS_SIZE;
@@ -65,6 +74,16 @@
                     if (positionMax > lightPosMin && positionMax < lightPosMax ||
                         positionMin > lightPosMin && positionMin < lightPosMax)
                     {
+                        [branch]
+                        if (light.spot)
+                        {
+                            float coneRadius = r * tan(light.spotAngle);
+                            float3 coneCenterWS = light.positionWS + (light.direction * r);
+                            float2 spotMinMax = SpotMinMax(light.positionWS, coneCenterWS, 0, coneRadius, dimension);
+
+                            if (!(positionMax > spotMinMax.x && positionMax < spotMinMax.y ||
+                                positionMin > spotMinMax.x && positionMin < spotMinMax.y)) continue;
+                        }
                         uint component = index / 32;
                         flags[component] |= 0x1 << (index - (component * 32));
                     }
