@@ -2,8 +2,15 @@
 {
     Properties
     {
-        [Toggle(_REFLECTION_PROBE)] _ReflectionProbe("Reflection Probe", Float) = 0
-        [Toggle(_CLEAR)] _Clear("Clear", Float) = 0
+        //[Toggle(_REFLECTION_PROBE)] _ReflectionProbe("Reflection Probe", Float) = 0
+        //[Toggle(_CLEAR)] _Clear("Clear", Float) = 0
+        [Header(Animatable light properties)]
+        [Header(Light Color (XYZ) Intensity (W))]
+        [Space]
+        _Data0 ("", Vector) = (1,1,1,1)
+        [Header(Range (X) Inner Angle Percent (Y) Outer Angle (Z) Type (W))]
+        [Space]
+        _Data1 ("", Vector) = (1,1,1,0)
     }
     SubShader
     {
