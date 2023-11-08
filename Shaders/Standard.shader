@@ -212,6 +212,9 @@ Material InitializeMaterial(Varyings varyings)
         m.emission = _EmissionMap.Sample(sampler_EmissionMap, mainUV) * _EmissionColor;
         m.emission = lerp(m.emission, m.emission * m.albedo, _EmissionMultiplyBase);
     #endif
+// 
+    // m.albedo *= 0.001;
+    // m.emission = _Udon_CBIRP_IES.Sample(sampler_MainTex, mainUV).rrr;
 
     return m;
 }

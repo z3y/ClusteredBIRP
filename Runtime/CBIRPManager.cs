@@ -17,6 +17,7 @@ namespace CBIRP
         public CustomRenderTexture clustering;
         public CustomRenderTexture uniforms;
         public Texture2D shadowmask;
+        public Texture2D generatedIesLut;
         public CubemapArray reflectionProbeArray;
         //public Cubemap skyProbe;
         [SerializeField] private Camera _trackingCamera;
@@ -39,6 +40,8 @@ namespace CBIRP
             VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_Clusters"), clustering);
             VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_ShadowMask"), shadowmask);
             VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_ReflectionProbes"), reflectionProbeArray);
+            VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_IES"), generatedIesLut);
+
             //VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_SkyProbe"), skyProbe);
         }
 

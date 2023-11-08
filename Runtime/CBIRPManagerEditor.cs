@@ -2,13 +2,16 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using Unity.Collections;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using VRC;
+using VRC.SDKBase;
 
 namespace CBIRP
 {
@@ -32,6 +35,39 @@ namespace CBIRP
             manager.OnValidate();
         }
 
+        private static Texture2D iesLut;
+        public static void GenerateIESLut()
+        {
+            var lights = GameObject.FindObjectsOfType<CBIRPLight>().Where(x => x.ies).ToArray();
+            int iesCount = lights.Length;
+            int iesResolution = 64;
+            if (!iesLut)
+            {
+                iesLut = new Texture2D(iesResolution, iesCount, TextureFormat.R8, false, true)
+                {
+                    filterMode = FilterMode.Point,
+                    wrapMode = TextureWrapMode.Clamp,
+                };
+            }
+            if (iesLut.height != iesCount)
+            {
+                iesLut.Resize(iesResolution, iesCount);
+            }
+            var data = iesLut.GetRawTextureData<byte>();
+            int index = 0;
+            float step = 255.0f / iesLut.width;
+            for (int y = 0; y < iesLut.height; y++)
+            {
+                var curve = lights[y].iesCurve;
+                for (int x = 0; x < iesLut.width; x++)
+                {
+                    data[index++] = (byte)(Mathf.Clamp01(curve.Evaluate(1.0f / 64f * x)) * 255.0f);
+                }
+            }
+            iesLut.Apply();
+
+            Shader.SetGlobalTexture("_Udon_CBIRP_IES", iesLut);
+        }
 
         public void OnActiveBuildTargetChanged(BuildTarget previousTarget, BuildTarget newTarget)
         {

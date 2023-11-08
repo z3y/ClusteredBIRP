@@ -23,5 +23,5 @@ Material:
     - _Clear: 0
     - _ReflectionProbe: 0
     m_Colors:
-    - _Data0: {r: 0.0047169924, g: 1, b: 0.58, a: 1}
-    - _Data1: {r: 5.21, g: 1, b: 1, a: 1}
+    - _Data0: {r: 1, g: 1, b: 1, a: 1}
+    - _Data1: {r: 5, g: 50, b: 90, a: 0}
