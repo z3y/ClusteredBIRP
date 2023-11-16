@@ -33,10 +33,10 @@ namespace CBIRP
 
         public bool shadowMask = false;
         public bool specularOnlyShadowmask = false;
-        public bool ies = false;
-        public AnimationCurve iesCurve = AnimationCurve.Linear(0, 1, 1, 1);
-        [Tooltip("Automatically set by the ies generator")]
-        [SerializeField] private int _iesID = -1;
+        //public bool ies = false;
+        //public AnimationCurve iesCurve = AnimationCurve.Linear(0, 1, 1, 1);
+        //[Tooltip("Automatically set by the ies generator")]
+        //[SerializeField] private int _iesID = -1;
 
         public MeshRenderer meshRenderer;
         private MaterialPropertyBlock _propertyBlock;
@@ -135,10 +135,10 @@ namespace CBIRP
                 CopyShadowMaskID();
             }
 
-            if (ies)
+            /*if (ies)
             {
                 CBIRPManagerEditor.GenerateIESLut();
-            }
+            }*/
 
             UpdateLight();
         }

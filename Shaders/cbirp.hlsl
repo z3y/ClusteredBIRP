@@ -73,12 +73,12 @@ namespace CBIRP
         return attenuation * attenuation;
     }
 
-    float PhotometricAttenuation(float3 posToLight, float3 lightDir)
-    {
-        float cosTheta = dot(-posToLight, lightDir);
-        float angle = acos(cosTheta) * (1.0 / UNITY_PI);
-        return _Udon_CBIRP_IES.SampleLevel(ies_bilinear_clamp_sampler, float2(angle, 0), 0).r;
-    }
+    // float PhotometricAttenuation(float3 posToLight, float3 lightDir)
+    // {
+    //     float cosTheta = dot(-posToLight, lightDir);
+    //     float angle = acos(cosTheta) * (1.0 / UNITY_PI);
+    //     return _Udon_CBIRP_IES.SampleLevel(ies_bilinear_clamp_sampler, float2(angle, 0), 0).r;
+    // }
 
     float3 Heatmap(float v)
     {
@@ -235,7 +235,12 @@ debug+=1;
                 {
                     attenuation *= GetSpotAngleAttenuation(light.direction, L, light.spotScale, light.spotOffset);
                 }
-                attenuation *= PhotometricAttenuation(L, light.direction);
+
+                // UNITY_BRANCH
+                // if (light.ies)
+                // {
+                //     attenuation *= PhotometricAttenuation(L, light.direction);
+                // }
 
                 #ifdef LIGHTMAP_ON
                 if (light.hasShadowmask)

@@ -35,7 +35,7 @@ namespace CBIRP
             manager.OnValidate();
         }
 
-        private static Texture2D iesLut;
+        /*private static Texture2D iesLut;
         public static void GenerateIESLut()
         {
             var lights = GameObject.FindObjectsOfType<CBIRPLight>().Where(x => x.ies).ToArray();
@@ -67,7 +67,7 @@ namespace CBIRP
             iesLut.Apply();
 
             Shader.SetGlobalTexture("_Udon_CBIRP_IES", iesLut);
-        }
+        }*/
 
         public void OnActiveBuildTargetChanged(BuildTarget previousTarget, BuildTarget newTarget)
         {
