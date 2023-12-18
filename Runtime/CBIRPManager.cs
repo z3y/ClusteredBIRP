@@ -15,7 +15,7 @@ namespace CBIRP
     {
         public float cullFar = 100f;
         public CustomRenderTexture clustering;
-        public CustomRenderTexture uniforms;
+        public RenderTexture uniforms;
         public Texture2D shadowmask;
         //public Texture2D generatedIesLut;
         public CubemapArray reflectionProbeArray;
@@ -27,15 +27,27 @@ namespace CBIRP
         public int probeResolution = 128;
         //public int probeMultiSampling = 1;
 
+        private int _cbirpPlayerPositionID;
+        private VRCPlayerApi _localPlayer;
         private void Start()
         {
             SetGlobalUniforms();
             SetDynamicUpdatesState(_dynamicUpdates);
+            _localPlayer = Networking.LocalPlayer;
+            _cbirpPlayerPositionID = VRCShader.PropertyToID("_Udon_CBIRP_PlayerPosition");
+        }
+        private void Update()
+        {
+            // an update loop had to be added just in case it breaks in the future as its broken in editor in 2022
+            // getting the main camera position is not very accurate in custom render textures
+            // also saves 1 extra texture sample previously used
+            Vector4 pos = _localPlayer.GetPosition();
+            pos.w = cullFar;
+            VRCShader.SetGlobalVector(_cbirpPlayerPositionID, pos);
         }
 
         public void SetGlobalUniforms()
         {
-            uniforms.material.SetFloat("_Far", cullFar);
             VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_Uniforms"), uniforms);
             VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_Clusters"), clustering);
             VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_ShadowMask"), shadowmask);
@@ -49,7 +61,7 @@ namespace CBIRP
         {
             SendCustomEventDelayedFrames(
                 isEnabled ? nameof(EnableDynamicUpdates) : nameof(DisableDynamicUpdates),
-                1, VRC.Udon.Common.Enums.EventTiming.Update);
+                2, VRC.Udon.Common.Enums.EventTiming.Update);
         }
         public void DisableDynamicUpdates() => _trackingCamera.gameObject.SetActive(false);
         public void EnableDynamicUpdates() => _trackingCamera.gameObject.SetActive(true);
