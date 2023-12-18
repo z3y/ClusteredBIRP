@@ -8,7 +8,8 @@ SamplerState sampler_Udon_CBIRP_ReflectionProbes;
 Texture2D _Udon_CBIRP_ShadowMask;
 Texture2D _Udon_CBIRP_IES;
 SamplerState ies_bilinear_clamp_sampler;
-uniform float _Udon_CBIRP_Far;
+// uniform float _Udon_CBIRP_Far;
+uniform float4 _Udon_CBIRP_PlayerPosition;
 uniform uint _Udon_CBIRP_DummyZero;
 
 #include "Constants.hlsl"

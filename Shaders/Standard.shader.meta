@@ -9,7 +9,7 @@ ShaderImporter:
   - _EmissionMap: {instanceID: 0}
   nonModifiableTextures:
   - _DFG: {fileID: 2800000, guid: 6c47db6712dbfed4cbf194607b81a12f, type: 3}
-  - _Udon_CBIRP_Uniforms: {fileID: 8600000, guid: 2f0d588e7ddaa0e4db6e999fe9b6c088,
+  - _Udon_CBIRP_Uniforms: {fileID: 8400000, guid: 1d06e23be62e49e40aaf4af29874468e,
       type: 2}
   - _Udon_CBIRP_Clusters: {fileID: 8600000, guid: d81d6aa0aa098cf41a9aa549d3913657,
       type: 2}
