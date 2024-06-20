@@ -180,9 +180,26 @@ namespace CBIRP
         SerializedProperty _specularOnlyShadowmask;
         SerializedProperty _destroy;
 
+        static Vector3 InstanciatePosition()
+        {
+            var view = SceneView.lastActiveSceneView.camera.transform;
+            return view.position + (view.rotation * (Vector3.forward * 2.0f));
+        }
+        [MenuItem("GameObject/Light/CBIRP/Point Light")]
+        public static void AddLight()
+        {
+            var obj = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<Object>("Packages/z3y.clusteredbirp/Prefabs/CBIRP Light.prefab"));
+            obj.transform.position = InstanciatePosition();
+            Selection.activeObject = obj;
+        }
 
-
-
+        [MenuItem("GameObject/Light/CBIRP/Reflection Probe")]
+        public static void AddProbe()
+        {
+            var obj = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<Object>("Packages/z3y.clusteredbirp/Prefabs/CBIRP Probe.prefab"));
+            obj.transform.position = InstanciatePosition();
+            Selection.activeObject = obj;
+        }
 
 
         void OnEnable()
