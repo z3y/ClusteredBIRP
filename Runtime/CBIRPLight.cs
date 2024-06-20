@@ -238,7 +238,14 @@ namespace CBIRP
             {
                 return;
             }
-    #if BAKERY_INCLUDED
+
+            var filter = l.GetComponent<MeshFilter>();
+            var renderer = l.GetComponent<MeshRenderer>();
+
+            filter.hideFlags |= HideFlags.HideInInspector;
+            renderer.hideFlags |= HideFlags.HideInInspector;
+
+#if BAKERY_INCLUDED
 
             var bakeryLight = l.gameObject.GetComponent<BakeryPointLight>();
             if (bakeryLight && GUILayout.Button("Match Bakery Light to this Light"))

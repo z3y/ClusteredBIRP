@@ -16,6 +16,14 @@ Clustered lighting for the Unity Built-In Pipeline in VRChat.
 - Blend distance
 - Reflection probes don't break batching
 
+# How to use
+- Swap shaders to a supported shader (a standard shader example included CBRIP/Standard - Mono SH enabled by default)
+- You also can use [ShaderGraphZ](https://github.com/z3y/ShaderGraphZ) to create custom shaders with a node editor that support clustered birp
+- Drag in the manager prefab in the scene
+- Drag in lights and reflection probe prefabs
+- Press bake and pack reflection probes
+
+
 ## Limitations
 - Max number of enabled lights per world: 128
 - Max number of enabled reflection probes per world : 32
@@ -26,12 +34,6 @@ Clustered lighting for the Unity Built-In Pipeline in VRChat.
 - Only 1 global shadow mask texture. Cant have multiple lightmaps unless implemented differently in a shader. Unity just doesn't pass the shadow mask texture in forward base unless its used. This could be forced with a shadow mask directional light, but then it wastes 1 channel of the shadow mask. If you need more lightmap density try out my [lightmap packer](https://github.com/z3y/XatlasLightmap).
 - Currently, baking probes with multiple bounces is way slower than it needs to be
 - This is still very new and experimental, in order to further improve it and expand with features, expect breaking changes
-
-# How to use
-- Swap shaders to a supported shader (a standard shader example included CBRIP/Standard - Mono SH enabled by default)
-- Drag in the manager prefab in the scene
-- Drag in lights and reflection probe prefabs
-- Press bake and pack reflection probes
 
 # Preview
 
