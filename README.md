@@ -16,7 +16,12 @@ Clustered lighting for the Unity Built-In Pipeline in VRChat.
 - Blend distance
 - Reflection probes don't break batching
 
+
 # How to use
+-  Add listing to VRChat Creator Companion
+```
+https://z3y.github.io/vpm-package-listing/
+```
 - Swap shaders to a supported shader (a standard shader example included CBRIP/Standard - Mono SH enabled by default)
 - You also can use [ShaderGraphZ](https://github.com/z3y/ShaderGraphZ) to create custom shaders with a node editor that support clustered birp
 - To add a Light: `Game Object > Light > CBIRP > Point Light`
