@@ -19,9 +19,8 @@ Clustered lighting for the Unity Built-In Pipeline in VRChat.
 # How to use
 - Swap shaders to a supported shader (a standard shader example included CBRIP/Standard - Mono SH enabled by default)
 - You also can use [ShaderGraphZ](https://github.com/z3y/ShaderGraphZ) to create custom shaders with a node editor that support clustered birp
-- Drag in the manager prefab in the scene
-- Drag in lights and reflection probe prefabs
-- Press bake and pack reflection probes
+- To add a Light: `Game Object > Light > CBIRP > Point Light`
+- To add a Reflection Probe: `Game Object > Light > CBIRP > Reflection Probe`, press bake and pack reflection probes
 
 
 ## Limitations
