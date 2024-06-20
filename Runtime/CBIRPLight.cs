@@ -21,7 +21,7 @@ namespace CBIRP
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
     public class CBIRPLight : UdonSharpBehaviour
     {
-        public bool destroyComponent = true;
+        [Tooltip("Destroy Udon component on start to reduce overhead. Lights transform will still be updated, but properties cant be modified.")]public bool destroyComponent = true;
         public LightType lightType = LightType.Point;
 
         public Color color = Color.white;
@@ -69,6 +69,7 @@ namespace CBIRP
 
         void Start()
         {
+
             Initialize();
             UpdateLight();
 
@@ -80,6 +81,10 @@ namespace CBIRP
 
         public void UpdateLight()
         {
+            if (meshRenderer == null)
+            {
+                meshRenderer = GetComponent<MeshRenderer>();
+            }
             _propertyBlock = new MaterialPropertyBlock();
             _data0 = color;
             _data0.w = intensity;
@@ -98,6 +103,21 @@ namespace CBIRP
             //_propertyBlock.SetVector(_Data3ID, _data3);
             meshRenderer.SetPropertyBlock(_propertyBlock);
         }
+
+#if UNITY_EDITOR
+        void OnDrawGizmosSelected()
+        {
+            Gizmos.color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+            if (lightType == LightType.Point)
+            {
+                Gizmos.DrawWireSphere(transform.position, range);
+            }
+            else
+            {
+                Gizmos.DrawLine(transform.position, transform.position + (transform.rotation * (Vector3.forward * 0.5f)));
+            }
+        }
+#endif
 
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
         // baking output not initliazed right at start 
@@ -149,11 +169,70 @@ namespace CBIRP
     [CustomEditor(typeof(CBIRPLight)), CanEditMultipleObjects]
     public class CBIRPLightEditor : Editor
     {
+
+        SerializedProperty _type;
+        SerializedProperty _range;
+        SerializedProperty _color;
+        SerializedProperty _intensity;
+        SerializedProperty _innerAngle;
+        SerializedProperty _outerAngle;
+        SerializedProperty _shadowmask;
+        SerializedProperty _specularOnlyShadowmask;
+        SerializedProperty _destroy;
+
+
+
+
+
+
+        void OnEnable()
+        {
+            _type = serializedObject.FindProperty(nameof(CBIRPLight.lightType));
+            _range = serializedObject.FindProperty(nameof(CBIRPLight.range));
+            _color = serializedObject.FindProperty(nameof(CBIRPLight.color));
+            _intensity = serializedObject.FindProperty(nameof(CBIRPLight.intensity));
+            _innerAngle = serializedObject.FindProperty(nameof(CBIRPLight.innerAnglePercent));
+            _outerAngle = serializedObject.FindProperty(nameof(CBIRPLight.outerAngle));
+            _shadowmask = serializedObject.FindProperty(nameof(CBIRPLight.shadowMask));
+            _specularOnlyShadowmask = serializedObject.FindProperty(nameof(CBIRPLight.specularOnlyShadowmask));
+            _destroy = serializedObject.FindProperty(nameof(CBIRPLight.destroyComponent));
+
+
+
+
+        }
+
         public override void OnInspectorGUI()
         {
             if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target)) return;
 
-            base.OnInspectorGUI();
+            //base.OnInspectorGUI();
+
+            EditorGUI.BeginChangeCheck();
+
+            EditorGUILayout.PropertyField(_type);
+            if (_type.intValue == (int)LightType.Spot)
+            {
+                EditorGUILayout.PropertyField(_innerAngle);
+                EditorGUILayout.PropertyField(_outerAngle);
+            }
+            EditorGUILayout.PropertyField(_range);
+            EditorGUILayout.PropertyField(_color);
+            EditorGUILayout.PropertyField(_intensity);
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(_shadowmask);
+            EditorGUILayout.PropertyField(_specularOnlyShadowmask);
+            EditorGUILayout.PropertyField(_destroy);
+
+
+
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                serializedObject.ApplyModifiedProperties();
+            }
+
+
             var l = (CBIRPLight)target;
             if (targets.Length > 1)
             {

@@ -36,6 +36,7 @@ namespace CBIRP
             _localPlayer = Networking.LocalPlayer;
             _cbirpPlayerPositionID = VRCShader.PropertyToID("_Udon_CBIRP_PlayerPosition");
         }
+        
         private void Update()
         {
             // an update loop had to be added just in case it breaks in the future as its broken in editor in 2022

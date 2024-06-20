@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: CBIRPManager
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 4a86c574b3ca5854a8235fb731373b55,
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 26380f5940f05bd48bba8b948e65f4be,
     type: 2}
   udonAssembly: 
   assemblyError: 
