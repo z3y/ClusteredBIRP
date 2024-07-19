@@ -27,6 +27,9 @@ https://z3y.github.io/vpm-package-listing/
 - To add a Light: `Game Object > Light > CBIRP > Point Light`
 - To add a Reflection Probe: `Game Object > Light > CBIRP > Reflection Probe`, press bake and pack reflection probes
 
+## Supported Shaders
+- [Lit Shader](https://github.com/z3y/shaders) - by adding `#include "Packages/z3y.clusteredbirp/Shaders/Include.litshader"` at the end of the config file
+- [ShaderGraphZ](https://github.com/z3y/ShaderGraphZ) - Enable CBIRP Toggle in the PBR master graph
 
 ## Limitations
 - Max number of enabled lights per world: 128
