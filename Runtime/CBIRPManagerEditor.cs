@@ -1,4 +1,4 @@
-#if !COMPILER_UDONSHARP && UNITY_EDITOR
+﻿#if !COMPILER_UDONSHARP && UNITY_EDITOR
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -150,12 +150,9 @@ namespace CBIRP
                 var reflectionProbe = probeInstances[i].probe;
                 Texture probe = reflectionProbe.texture;
 
-                for (int mip = 0; mip < referenceProbe.mipmapCount; mip++)
+                for (int side = 0; side < 6; side++)
                 {
-                    for (int side = 0; side < 6; side++)
-                    {
-                        Graphics.CopyTexture(probe, side, mip, array, (i * 6) + side, mip);
-                    }
+                    Graphics.CopyTexture(probe, side, array, (i * 6) + side);
                 }
 
                 var cbirpProbe = reflectionProbe.transform.GetComponent<CBIRPReflectionProbe>();
