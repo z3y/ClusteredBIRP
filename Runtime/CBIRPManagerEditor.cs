@@ -1,4 +1,4 @@
-﻿#if !COMPILER_UDONSHARP && UNITY_EDITOR
+#if !COMPILER_UDONSHARP && UNITY_EDITOR
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -143,7 +143,7 @@ namespace CBIRP
             }
 
             var referenceProbe = probeInstances[0].probe.texture as Cubemap;
-            var array = new CubemapArray(referenceProbe.width, referenceProbe.height, referenceProbe.format, true);
+            var array = new CubemapArray(referenceProbe.width, probeInstances.Length, referenceProbe.format, true);
 
             for (int i = 0; i < probeInstances.Length; i++)
             {
