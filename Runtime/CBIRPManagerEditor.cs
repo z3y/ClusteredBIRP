@@ -143,19 +143,16 @@ namespace CBIRP
             }
 
             var referenceProbe = probeInstances[0].probe.texture as Cubemap;
-            var array = new CubemapArray(referenceProbe.width, referenceProbe.height, referenceProbe.format, true);
+            var array = new CubemapArray(referenceProbe.width, probeInstances.Length, referenceProbe.format, true);
 
             for (int i = 0; i < probeInstances.Length; i++)
             {
                 var reflectionProbe = probeInstances[i].probe;
                 Texture probe = reflectionProbe.texture;
 
-                for (int mip = 0; mip < referenceProbe.mipmapCount; mip++)
+                for (int side = 0; side < 6; side++)
                 {
-                    for (int side = 0; side < 6; side++)
-                    {
-                        Graphics.CopyTexture(probe, side, mip, array, (i * 6) + side, mip);
-                    }
+                    Graphics.CopyTexture(probe, side, array, (i * 6) + side);
                 }
 
                 var cbirpProbe = reflectionProbe.transform.GetComponent<CBIRPReflectionProbe>();
