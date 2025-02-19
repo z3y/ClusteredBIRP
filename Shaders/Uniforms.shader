@@ -36,6 +36,9 @@ Cull Off
             #include "Constants.hlsl"
             #include "Packing.hlsl"
 
+            Texture2D _Udon_CBIRP_ColorTexture;
+            SamplerState sampler_Udon_CBIRP_ColorTexture;
+
             UNITY_INSTANCING_BUFFER_START(Props)
                 UNITY_DEFINE_INSTANCED_PROP(float4, _Data0)
                 UNITY_DEFINE_INSTANCED_PROP(float4, _Data1)
@@ -172,7 +175,9 @@ Cull Off
                     half outerAngle = prop1.b;
                     bool isSpot = prop1.a > 0;
 
-                    float3 color = prop0.rgb;
+                    bool useColorTexture = prop2.z;
+                    float3 colorTexture = _Udon_CBIRP_ColorTexture.SampleLevel(sampler_Udon_CBIRP_ColorTexture, 0, 12).rgb;
+                    float3 color = useColorTexture ? colorTexture : prop0.rgb;
                     float intensity = prop0.a;
 
                     half flickerSpeed = prop2.y;

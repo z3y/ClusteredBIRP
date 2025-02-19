@@ -25,6 +25,7 @@ namespace CBIRP
         public LightType lightType = LightType.Point;
 
         public Color color = Color.white;
+        public bool useColorTexture = false;
         public float intensity = 1f;
         public float range = 5f;
 
@@ -53,7 +54,6 @@ namespace CBIRP
         private Vector4 _data1 = new Vector4();
         private Vector4 _data2 = new Vector4();
         //private Vector4 _data3 = new Vector4();
-
 
         private bool _initialized = false;
         private void Initialize()
@@ -96,10 +96,12 @@ namespace CBIRP
 
             _data2.x = shadowMask ? _shadowMaskID : -1;
             _data2.y = specularOnlyShadowmask ? 1f : 0f;
+            _data2.z = useColorTexture ? 1 : 0;
 
             _propertyBlock.SetVector(_Data0ID, _data0);
             _propertyBlock.SetVector(_Data1ID, _data1);
             _propertyBlock.SetVector(_Data2ID, _data2);
+
             //_propertyBlock.SetVector(_Data3ID, _data3);
             meshRenderer.SetPropertyBlock(_propertyBlock);
         }
@@ -173,6 +175,8 @@ namespace CBIRP
         SerializedProperty _type;
         SerializedProperty _range;
         SerializedProperty _color;
+        SerializedProperty _useColorTexture;
+
         SerializedProperty _intensity;
         SerializedProperty _innerAngle;
         SerializedProperty _outerAngle;
@@ -207,6 +211,7 @@ namespace CBIRP
             _type = serializedObject.FindProperty(nameof(CBIRPLight.lightType));
             _range = serializedObject.FindProperty(nameof(CBIRPLight.range));
             _color = serializedObject.FindProperty(nameof(CBIRPLight.color));
+            _useColorTexture = serializedObject.FindProperty(nameof(CBIRPLight.useColorTexture));
             _intensity = serializedObject.FindProperty(nameof(CBIRPLight.intensity));
             _innerAngle = serializedObject.FindProperty(nameof(CBIRPLight.innerAnglePercent));
             _outerAngle = serializedObject.FindProperty(nameof(CBIRPLight.outerAngle));
@@ -235,6 +240,7 @@ namespace CBIRP
             }
             EditorGUILayout.PropertyField(_range);
             EditorGUILayout.PropertyField(_color);
+            EditorGUILayout.PropertyField(_useColorTexture);
             EditorGUILayout.PropertyField(_intensity);
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(_shadowmask);

@@ -17,6 +17,8 @@ namespace CBIRP
         public CustomRenderTexture clustering;
         public RenderTexture uniforms;
         public Texture2D shadowmask;
+        [Tooltip("Sample the lowest mip from a global texture and use as light color, for example from a video player screen")]
+        public Texture colorTexture;
         //public Texture2D generatedIesLut;
         public CubemapArray reflectionProbeArray;
         //public Cubemap skyProbe;
@@ -53,6 +55,8 @@ namespace CBIRP
             VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_Clusters"), clustering);
             VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_ShadowMask"), shadowmask);
             VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_ReflectionProbes"), reflectionProbeArray);
+            VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_ColorTexture"), colorTexture);
+
             //VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_IES"), generatedIesLut);
 
             //VRCShader.SetGlobalTexture(VRCShader.PropertyToID("_Udon_CBIRP_SkyProbe"), skyProbe);
