@@ -24,7 +24,9 @@ CODE_START
         CBIRP::ComputeLights(cluster, IN.positionWS, sd.normalWS, sd.viewDirectionWS, sd.f0, sd.NoV, sd.perceptualRoughness, shadowmask, giData.Light, giData.Specular);
         giData.Specular *= sd.energyCompensation;
 
+    #ifndef DISABLE_CBIRP_REFLECTIONS
         giData.Reflections = CBIRP::SampleProbes(cluster, sd.reflectionDirection, IN.positionWS, sd.perceptualRoughness).xyz * sd.brdf * sd.energyCompensation * sd.specularOcclusion;
+    #endif
     }
 
     #define ModifyLighting ModifyLightingCBIRP
