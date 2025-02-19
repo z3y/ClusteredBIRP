@@ -1,9 +1,11 @@
 # Clustered BIRP
+
 Clustered lighting for the Unity Built-In Pipeline in VRChat.
 
 ## Features
 
 ### Lights
+
 - Spot and Point lights
 - Inner and outer spot angle
 - Inverse square falloff
@@ -12,26 +14,38 @@ Clustered lighting for the Unity Built-In Pipeline in VRChat.
 - All lights in one pass
 
 ### Reflection Probes
+
 - Bounds not tied to the renderer bounds, similar to URP
 - Blend distance
 - Reflection probes don't break batching
 
-
 # How to use
--  Add listing to VRChat Creator Companion
+
+- Add listing to VRChat Creator Companion
+
 ```
 https://z3y.github.io/vpm-package-listing/
 ```
+
 - Swap shaders to a supported shader (a standard shader example included CBRIP/Standard - Mono SH enabled by default)
 - You also can use [ShaderGraphZ](https://github.com/z3y/ShaderGraphZ) to create custom shaders with a node editor that support clustered birp
 - To add a Light: `Game Object > Light > CBIRP > Point Light`
 - To add a Reflection Probe: `Game Object > Light > CBIRP > Reflection Probe`, press bake and pack reflection probes
 
+## Color Texture
+
+Color Texture allows using the lowest mip (average color of the texture) as the light color, for example with video player textures.
+
+- Assign a texture to the CBIRP Manager script
+- Enable "Use Color Texture" toggle on a light
+
 ## Supported Shaders
+
 - [Lit Shader](https://github.com/z3y/shaders) - by adding `#include "Packages/z3y.clusteredbirp/Shaders/Include.litshader"` at the end of the config file
 - [ShaderGraphZ](https://github.com/z3y/ShaderGraphZ) - Enable CBIRP Toggle in the PBR master graph
 
 ## Limitations
+
 - Max number of enabled lights per world: 128
 - Max number of enabled reflection probes per world : 32
 - There is no limitation when it comes to number of lights in a single cluster, however having many lights with intersecting ranges is less performant
@@ -47,18 +61,15 @@ Inner/Outer angles:
 
 https://github.com/z3y/ClusteredBIRP/assets/33181641/dd173fa9-3cb5-4cb0-95b5-0e70bc537600
 
-
 Shadowmask:
 
 https://github.com/z3y/ClusteredBIRP/assets/33181641/2d36d35d-388d-47d3-9539-d0375d7b4bdb
-
 
 Demo World:
 
 https://vrchat.com/home/world/wrld_cb7fd9cd-55d5-4e48-8157-46322cfaf61c
 
 ## [Discord](https://discord.gg/bw46tKgRFT)
-
 
 # How it works
 
