@@ -29,6 +29,7 @@ https://z3y.github.io/vpm-package-listing/
 
 - Swap shaders to a supported shader (a standard shader example included CBRIP/Standard - Mono SH enabled by default)
 - You also can use [ShaderGraphZ](https://github.com/z3y/ShaderGraphZ) to create custom shaders with a node editor that support clustered birp
+- Add a Manager to the scene `Game Object > Light > CBIRP > CBIRP Manager`
 - To add a Light: `Game Object > Light > CBIRP > Point Light`
 - To add a Reflection Probe: `Game Object > Light > CBIRP > Reflection Probe`, press bake and pack reflection probes
 

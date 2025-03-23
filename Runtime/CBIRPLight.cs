@@ -189,6 +189,15 @@ namespace CBIRP
             var view = SceneView.lastActiveSceneView.camera.transform;
             return view.position + (view.rotation * (Vector3.forward * 2.0f));
         }
+
+        [MenuItem("GameObject/Light/CBIRP/CBIRP Manager")]
+        public static void AddManager()
+        {
+            var obj = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<Object>("Packages/z3y.clusteredbirp/Prefabs/CBIRP Manager.prefab"));
+            obj.transform.position = InstanciatePosition();
+            Selection.activeObject = obj;
+        }
+
         [MenuItem("GameObject/Light/CBIRP/Point Light")]
         public static void AddLight()
         {
