@@ -2,9 +2,9 @@
 
 Clustered lighting for the Unity Built-In Pipeline in VRChat.
 
-## Features
+# Features
 
-### Lights
+## Lights
 
 - Spot and Point lights
 - Inner and outer spot angle
@@ -12,20 +12,19 @@ Clustered lighting for the Unity Built-In Pipeline in VRChat.
 - Shadow mask
 - Specular Only shadow mask (Bakery light custom lighting option - direct, indirect, shadow mask)
 - All lights in one pass
+- Fallback light for Avatars (using non-important unity lights)
 
-### Reflection Probes
+## Reflection Probes
 
 - Bounds not tied to the renderer bounds, similar to URP
 - Blend distance
 - Reflection probes don't break batching
 
-# How to use
+# Setup
 
-- Add listing to VRChat Creator Companion
+- Add listing to VRChat Creator Companion:
 
-```
-https://z3y.github.io/vpm-package-listing/
-```
+  https://z3y.github.io/vpm-package-listing/
 
 - Swap shaders to a supported shader (a standard shader example included CBRIP/Standard - Mono SH enabled by default)
 - You also can use [ShaderGraphZ](https://github.com/z3y/ShaderGraphZ) to create custom shaders with a node editor that support clustered birp
@@ -42,8 +41,8 @@ Color Texture allows using the lowest mip (average color of the texture) as the 
 
 ## Supported Shaders
 
+- [Graphlit](https://github.com/z3y/Graphlit) - Enable CBIRP Toggle on the PBR master graph or Material (Recommended)
 - [Lit Shader](https://github.com/z3y/shaders) - by adding `#include "Packages/z3y.clusteredbirp/Shaders/Include.litshader"` at the end of the config file
-- [ShaderGraphZ](https://github.com/z3y/ShaderGraphZ) - Enable CBIRP Toggle in the PBR master graph
 
 ## Limitations
 

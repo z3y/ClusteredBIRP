@@ -11,14 +11,19 @@
         [Header(Range (X) Inner Angle Percent (Y) Outer Angle (Z) Type (W))]
         [Space]
         _Data1 ("", Vector) = (1,1,1,0)
+
+        [Toggle(_PARTICLEMODE)] _ParticleMode("Particle Mode", Float) = 0
+        _MainTex ("Particle Texture", 2D) = "white" {}
+        _TintColor ("Tint Color", Color) = (0.5,0.5,0.5,0.5)
     }
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
-Cull Off
+        Tags { "RenderType"="Opaque" "RenderType"="Transparent" }
+        Cull Off
         Lighting Off
+        Blend One One 
         ZWrite Off
-        ZTest Always
+        // ZTest Always
 
         Pass
         {
@@ -29,12 +34,18 @@ Cull Off
 
             #pragma shader_feature_local _REFLECTION_PROBE
             #pragma shader_feature_local _CLEAR
+            #pragma shader_feature_local _PARTICLEMODE
+
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling nolodfade nolightprobe nolightmap forcemaxcount:128 maxcount:128 // max count in vrchat seems to be 128, needs offset for ID
 
             #include "UnityCG.cginc"
             #include "Constants.hlsl"
             #include "Packing.hlsl"
+
+            sampler2D _MainTex;
+            float4 _TintColor;
+
 
             Texture2D _Udon_CBIRP_ColorTexture;
             SamplerState sampler_Udon_CBIRP_ColorTexture;
@@ -49,8 +60,10 @@ Cull Off
             struct appdata
             {
                 float4 vertex : POSITION;
-                float2 uv : TEXCOORD0;
+                float4 uv : TEXCOORD0;
                 float3 normalOS : NORMAL;
+                float3 color : COLOR;
+                float4 uv1 : TEXCOORD1;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -58,8 +71,9 @@ Cull Off
             {
                 float2 uv : TEXCOORD0;
                 float4 vertex : SV_POSITION;
-                float3 transformPosition : TEXCOORD1;
+                float4 transformPosition : TEXCOORD1;
                 float3 direction : TEXCOORD2;
+                float4 particleData : TEXCOORD3;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -71,7 +85,11 @@ Cull Off
                 UNITY_TRANSFER_INSTANCE_ID(v, o);
 
                 o.vertex = UnityObjectToClipPos(v.vertex);
+                #ifdef _PARTICLEMODE
+                o.transformPosition.xyz = v.vertex.xyz;
+                #else
                 o.transformPosition.xyz = mul(unity_ObjectToWorld, float4(0,0,0,1)).xyz;
+                #endif
                 o.uv = v.uv;
                 float4 uv = float4(0,0,0,1);
                 float2 inUV = v.uv.xy;
@@ -80,6 +98,10 @@ Cull Off
                 uint index = o.instanceID + 1;  // 0 reserved for no lights, offset here to skip that in the surface shader
                 #else
                 uint index = 0;
+                #endif
+
+                #ifdef _PARTICLEMODE
+                index = v.uv.z;
                 #endif
                 
                 inUV.x += index;
@@ -104,13 +126,27 @@ Cull Off
                 uv.y *= _ProjectionParams.x;
 
 
-                o.vertex = uv;
 
                 bool isTrackerCam = _ProjectionParams.y == -0.0625;
+                o.transformPosition.w = !isTrackerCam;
+                #ifndef _PARTICLEMODE
+                o.vertex = uv;
                 o.vertex *= isTrackerCam;
+                #else
+                if (isTrackerCam)
+                {
+                    o.vertex = uv;
+                }
+                else
+                {
+                    o.uv.xy = v.uv.xy;
+                }
+                #endif
 
                 o.direction = -mul((float3x3)UNITY_MATRIX_M, v.normalOS);
 
+                o.particleData.rgb = v.color.rgb;
+                o.particleData.w = v.uv.w;
                 return o;
             }
 
@@ -132,7 +168,6 @@ Cull Off
             float4 frag (v2f i) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(i);
-
                 #ifdef _CLEAR
                 return 0;
                 #endif
@@ -147,6 +182,20 @@ Cull Off
                 float4 prop1 = UNITY_ACCESS_INSTANCED_PROP(Props, _Data1);
                 float4 prop2 = UNITY_ACCESS_INSTANCED_PROP(Props, _Data2);
                 float4 prop3 = UNITY_ACCESS_INSTANCED_PROP(Props, _Data3);
+
+                #ifdef _PARTICLEMODE
+                    bool isParticle = i.transformPosition.w;
+                    if (isParticle)
+                    {
+                        half4 particle = 2.0f * _TintColor * tex2D(_MainTex, i.uv);
+                        particle.rgb *= i.particleData.rgb;
+                        particle.a = saturate(particle.a);
+                        return particle;
+                    }
+                    // prop1.x = i.particleData.a; // range
+                    prop1.x = 4; // range
+                    prop0.rgb = i.particleData.rgb; // color
+                #endif
 
                 float2 uv = i.uv.xy;
                 uint writeIndex = uv.y * CBIRP_UNIFORMS_SIZE.y * 0.5;

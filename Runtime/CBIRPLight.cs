@@ -56,6 +56,7 @@ namespace CBIRP
         //private Vector4 _data3 = new Vector4();
 
         private bool _initialized = false;
+        public Light fallbackLight;
         private void Initialize()
         {
             _Data0ID = VRCShader.PropertyToID("_Data0");
@@ -104,6 +105,27 @@ namespace CBIRP
 
             //_propertyBlock.SetVector(_Data3ID, _data3);
             meshRenderer.SetPropertyBlock(_propertyBlock);
+
+            UpdatePlayerLight();
+        }
+
+        void UpdatePlayerLight()
+        {
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+            if (!Application.isPlaying)
+            {
+                return;
+            }
+#endif
+            if (!fallbackLight)
+            {
+                return;
+            }
+
+            fallbackLight.gameObject.SetActive(enabled);
+            fallbackLight.range = range;
+            fallbackLight.color = color;
+            fallbackLight.intensity = intensity;
         }
 
 #if UNITY_EDITOR
@@ -183,6 +205,8 @@ namespace CBIRP
         SerializedProperty _shadowmask;
         SerializedProperty _specularOnlyShadowmask;
         SerializedProperty _destroy;
+        SerializedProperty _playerLight;
+
 
         static Vector3 InstanciatePosition()
         {
@@ -227,10 +251,7 @@ namespace CBIRP
             _shadowmask = serializedObject.FindProperty(nameof(CBIRPLight.shadowMask));
             _specularOnlyShadowmask = serializedObject.FindProperty(nameof(CBIRPLight.specularOnlyShadowmask));
             _destroy = serializedObject.FindProperty(nameof(CBIRPLight.destroyComponent));
-
-
-
-
+            _playerLight = serializedObject.FindProperty(nameof(CBIRPLight.fallbackLight));
         }
 
         public override void OnInspectorGUI()
@@ -255,6 +276,7 @@ namespace CBIRP
             EditorGUILayout.PropertyField(_shadowmask);
             EditorGUILayout.PropertyField(_specularOnlyShadowmask);
             EditorGUILayout.PropertyField(_destroy);
+            EditorGUILayout.PropertyField(_playerLight);
 
 
 
