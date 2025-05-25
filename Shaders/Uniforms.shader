@@ -14,7 +14,13 @@
 
         [Toggle(_PARTICLEMODE)] _ParticleMode("Particle Mode", Float) = 0
         _MainTex ("Particle Texture", 2D) = "white" {}
-        _TintColor ("Tint Color", Color) = (0.5,0.5,0.5,0.5)
+        [HDR] _TintColor ("Tint Color", Color) = (0.5,0.5,0.5,0.5)
+        _ParticleLightRange ("Particle Light Range", Range(0, 25)) = 4
+
+        // very temporary for now
+        [Toggle(_AUDIOLINK)] _AudioLink("Audio Link", Float) = 0
+        _AudioLinkInfluence("Audio Link Influence", Range(0, 1)) = 0.5
+
     }
     SubShader
     {
@@ -35,6 +41,7 @@
             #pragma shader_feature_local _REFLECTION_PROBE
             #pragma shader_feature_local _CLEAR
             #pragma shader_feature_local _PARTICLEMODE
+            #pragma shader_feature_local _AUDIOLINK
 
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling nolodfade nolightprobe nolightmap forcemaxcount:128 maxcount:128 // max count in vrchat seems to be 128, needs offset for ID
@@ -45,6 +52,8 @@
 
             sampler2D _MainTex;
             float4 _TintColor;
+            half _ParticleLightRange;
+            half _AudioLinkInfluence;
 
 
             Texture2D _Udon_CBIRP_ColorTexture;
@@ -156,7 +165,9 @@
             }
 
             #define glsl_mod(x,y) (((x)-(y)*floor((x)/(y))))
-            // #include "Packages/com.llealloo.audiolink/Runtime/Shaders/AudioLink.cginc"
+            #ifdef _AUDIOLINK
+            #include "Packages/com.llealloo.audiolink/Runtime/Shaders/AudioLink.cginc"
+            #endif
             float rand(float seed)
             {
                 // Very simple pseudo-random number generator
@@ -192,9 +203,14 @@
                         particle.a = saturate(particle.a);
                         return particle;
                     }
-                    // prop1.x = i.particleData.a; // range
-                    prop1.x = 4; // range
+                    prop1.x = _ParticleLightRange; // range
                     prop0.rgb = i.particleData.rgb; // color
+                #endif
+
+                #ifdef _AUDIOLINK
+                    half bass = AudioLinkData( ALPASS_FILTEREDAUDIOLINK + int2(15, 0) );
+                    half mid = AudioLinkData( ALPASS_FILTEREDAUDIOLINK + int2(10, 2) ) * 0.5;
+                    prop0.rgb = lerp(prop0.rgb, (bass + mid) * prop0.rgb, _AudioLinkInfluence);
                 #endif
 
                 float2 uv = i.uv.xy;

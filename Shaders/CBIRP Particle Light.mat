@@ -7,11 +7,13 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: CBIRP_Internal_Uniforms_Lights
+  m_Name: CBIRP Particle Light
   m_Shader: {fileID: 4800000, guid: 110ed635132d36f46b95aa757d7e186a, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - _AUDIOLINK
+  - _PARTICLEMODE
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
@@ -29,11 +31,14 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _AudioLink: 1
+    - _AudioLinkInfluence: 0.75
     - _Clear: 0
-    - _ParticleMode: 0
+    - _ParticleLightRange: 3.2
+    - _ParticleMode: 1
     - _ReflectionProbe: 0
     m_Colors:
-    - _Data0: {r: 1, g: 1, b: 1, a: 1}
+    - _Data0: {r: 1, g: 1, b: 1, a: 1.5}
     - _Data1: {r: 5, g: 50, b: 90, a: 0}
-    - _TintColor: {r: 1, g: 1, b: 1, a: 1}
+    - _TintColor: {r: 44.72703, g: 44.72703, b: 44.72703, a: 1}
   m_BuildTextureStacks: []
