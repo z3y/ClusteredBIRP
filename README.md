@@ -14,6 +14,10 @@ Clustered lighting for the Unity Built-In Pipeline in VRChat.
 - All lights in one pass
 - Fallback light for Avatars (using non-important unity lights)
 
+## Particle Lights
+
+- Use the included particle prefab thats been setup to work with clustered lights
+
 ## Reflection Probes
 
 - Bounds not tied to the renderer bounds, similar to URP
@@ -48,6 +52,7 @@ Color Texture allows using the lowest mip (average color of the texture) as the 
 
 - Max number of enabled lights per world: 128
 - Max number of enabled reflection probes per world : 32
+- Particle lights and regular lights cant easily be made to work together because of how light ids are handled, one of the two would need an id offset
 - There is no limitation when it comes to number of lights in a single cluster, however having many lights with intersecting ranges is less performant
 - Clustering is done in world space up to the ±far distance (far set on the main script) from the player position. Clustering is usually done in frustum space, but we don't have control over every camera in VRChat so this way it works on the stream camera as well. Keeping this range low as possible will give better clustering density
 - All reflection probes have to be the same resolution in order to get packed into a tex2Darray
