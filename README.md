@@ -12,7 +12,9 @@ Clustered lighting for the Unity Built-In Pipeline in VRChat.
 - Shadow mask
 - Specular Only shadow mask (Bakery light custom lighting option - direct, indirect, shadow mask)
 - All lights in one pass
-- Fallback light for Avatars (using non-important unity lights)
+- Fallback lights for Avatars
+  - Using up to 4 non-important/vertex unity lights
+  - Remaining lights are added to SH
 
 ## Particle Lights
 
@@ -31,10 +33,10 @@ Clustered lighting for the Unity Built-In Pipeline in VRChat.
   https://z3y.github.io/vpm-package-listing/
 
 - Swap shaders to a supported shader (a standard shader example included CBRIP/Standard - Mono SH enabled by default)
-- You also can use [ShaderGraphZ](https://github.com/z3y/ShaderGraphZ) to create custom shaders with a node editor that support clustered birp
+- You also can use [Graphlit](https://github.com/z3y/Graphlit) to create custom shaders with a node editor that support clustered birp
 - Add a Manager to the scene `Game Object > Light > CBIRP > CBIRP Manager`
-- To add a Light: `Game Object > Light > CBIRP > Point Light`
-- To add a Reflection Probe: `Game Object > Light > CBIRP > Reflection Probe`, press bake and pack reflection probes
+- Add a Light: `Game Object > Light > CBIRP > Point Light`
+- Add a Reflection Probe: `Game Object > Light > CBIRP > Reflection Probe`, press bake and pack reflection probes
 
 ## Color Texture
 
